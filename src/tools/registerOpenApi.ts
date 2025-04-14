@@ -21,8 +21,11 @@ type Parameter = {
   required?: boolean;
   schema: { type: "string" | "integer" };
 };
+
+
 type OpenApiSpec = {
   paths: Record<string, Path>;
+  servers: Array<{ url: string, variables?: Record<string, { default: string }> }>;
 };
 
 type OpenApiToolsOptions = {
@@ -37,12 +40,18 @@ export async function loadOpenApiSpec(path: string): Promise<OpenApiSpec> {
   return yaml.parse(openApiSpecContent, {});
 }
 
+function buildUrlParameters(servers: OpenApiSpec['servers']) {
+  return Object.keys(servers[0].variables || {}).reduce((acc, name) => ({...acc, [name]: z.string()}), {});
+}
+
 export async function registerOpenApiTools({
   server,
   dashboardApi,
   openApiSpec,
   allowedOperationIds,
 }: OpenApiToolsOptions) {
+
+
   for (const [path, methods] of Object.entries(openApiSpec.paths)) {
     for (const [method, definition] of Object.entries(methods)) {
       if (!allowedOperationIds?.has(definition.operationId)) {
@@ -56,9 +65,10 @@ export async function registerOpenApiTools({
       server.tool(
         definition.operationId,
         definition.summary || definition.description || "",
-        buildParametersZodSchema(parameters),
+        {...buildParametersZodSchema(parameters), ...buildUrlParameters(openApiSpec.servers)},
         buildToolCallback({
           path,
+          serverBaseUrl: openApiSpec.servers[0].url,
           method: method as Methods,
           parameters,
           dashboardApi,
@@ -70,28 +80,29 @@ export async function registerOpenApiTools({
 
 type ToolCallbackBuildOptions = {
   path: string;
+  serverBaseUrl: string;
   method: Methods;
   parameters: Parameter[];
   dashboardApi: DashboardApi;
 };
 
+
 function buildToolCallback({
   path,
+  serverBaseUrl,
   method,
   parameters,
   dashboardApi,
 }: ToolCallbackBuildOptions) {
-  return async ({
-    applicationId,
-    ...callbackParams
-  }: {
+  return async (callbackParams: {
     applicationId: string;
     [key: string]: any;
   }) => {
+    const { applicationId } = callbackParams;
     const apiKey = await dashboardApi.getApiKey(applicationId);
 
-    // TODO: url is specific to search, make it more generic/dynamic
-    const url = new URL(`https://${applicationId}.algolia.net`);
+    serverBaseUrl = serverBaseUrl.replace(/{([^}]+)}/g, (_, key) => callbackParams[key]);
+    const url = new URL(serverBaseUrl);
     url.pathname = path.replace(/{([^}]+)}/g, (_, key) => callbackParams[key]);
 
     for (const parameter of parameters) {

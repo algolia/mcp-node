@@ -29,7 +29,7 @@ const Application = z.object({
   id: z.string(),
   type: z.string(),
   attributes: z.object({
-    name: z.string(),
+    name: z.string().nullable(),
     is_owner: z.boolean(),
     permissions: z.array(z.string()),
     log_region: z.string(),

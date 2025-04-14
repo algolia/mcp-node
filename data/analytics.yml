@@ -1,0 +1,2551 @@
+openapi: 3.0.2
+info:
+  title: Analytics API
+  description: >
+    The Analytics API gives you access to metrics related to your Algolia search
+    experience.
+
+
+    ## Base URLs
+
+
+    The base URLs for requests to the Analytics API are:
+
+
+    - `https://analytics.us.algolia.com`
+
+    - `https://analytics.de.algolia.com`
+
+    - `https://analytics.algolia.com` (routes requests to the closest of the
+    above servers, based on your geographical location)
+
+
+    Use the URL that matches your [analytics
+    region](https://dashboard.algolia.com/account/infrastructure/analytics).
+
+
+    **All requests must use HTTPS.**
+
+
+    ## Availability and authentication
+
+
+    Access to the Analytics API is available as part of the [Premium or Elevate
+    plans](https://www.algolia.com/pricing).
+
+
+    To authenticate your API requests, add these headers:
+
+
+    - `x-algolia-application-id`. Your Algolia application ID.
+
+    - `x-algolia-api-key`. An API key with the necessary permissions to make the
+    request.
+      The required access control list (ACL) to make a request is listed in each endpoint's reference.
+
+    You can find your application ID and API key in the [Algolia
+    dashboard](https://dashboard.algolia.com/account).
+
+
+    ## Rate limits
+
+
+    You can make up to **100 requests per minute per app** to the Analytics API.
+
+    The response includes headers with information about the limits.
+
+
+    ## Parameters
+
+
+    Query parameters must be
+    [URL-encoded](https://developer.mozilla.org/en-US/docs/Glossary/Percent-encoding).
+
+    Non-ASCII characters must be UTF-8 encoded.
+
+    Plus characters (`+`) are interpreted as spaces.
+
+
+    ## Response status and errors
+
+
+    The Analytics API returns JSON responses.
+
+    Since JSON doesn't guarantee any specific ordering, don't rely on the order
+    of attributes in the API response.
+
+
+    - Successful responses return a `2xx` status
+
+    - Client errors return a `4xx` status
+
+    - Server errors are indicated by a `5xx` status.
+
+
+    Error responses have a `message` property with more information.
+
+
+    ## Version
+
+
+    The current version of the Analytics API is version 2, as indicated by the
+    `/2/` in each endpoint's URL.
+
+
+    ## Query aggregation
+
+
+    Algolia accepts queries on each keystroke.
+
+    To ensure you have relevant analytics data, however, the series of
+    keystrokes is aggregated to keep only the latest (final) user query.
+
+    This is called "prefix" aggregation.
+
+
+    For more information, see [Query agggregation and
+    processing](https://www.algolia.com/doc/guides/search-analytics/concepts/query-aggregation/).
+
+
+    See the analytics implementation overview for more information about query
+    aggregation.
+  version: 2.0.0
+servers:
+  - url: https://analytics.{region}.algolia.com
+    variables:
+      region:
+        enum:
+          - us
+          - de
+        default: us
+  - url: https://analytics.algolia.com
+security:
+  - appId: []
+    apiKey: []
+tags:
+  - name: click
+    x-displayName: Clicks
+    description: |
+      Metrics related to click and conversion events,
+      such as click and conversion rates for your search results.
+  - name: filter
+    x-displayName: Filters
+    description: |
+      Metrics related to filters.
+  - name: revenue
+    x-displayName: Revenue
+    description: |
+      Metrics related to revenue.
+  - name: search
+    x-displayName: Searches
+    description: |
+      Metrics related to searches and search results,
+      such as the no-results rate or the most frequent search queries.
+  - name: status
+    x-displayName: Status
+    description: Check the status of the Analytics API.
+  - name: user
+    x-displayName: Users
+    description: Metrics related to the users of your search.
+externalDocs:
+  url: https://www.algolia.com/doc/guides/search-analytics/overview/
+  description: |
+    Related guide: Search analytics.
+paths:
+  /{path}:
+    get:
+      operationId: customGet
+      summary: Send requests to the Algolia REST API
+      description: This method lets you send requests to the Algolia REST API.
+      parameters:
+        - $ref: '#/components/parameters/PathInPath'
+        - $ref: '#/components/parameters/Parameters'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '402':
+          $ref: '#/components/responses/FeatureNotEnabled'
+        '403':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '404':
+          $ref: '#/components/responses/IndexNotFound'
+      tags:
+        - analytics
+    post:
+      operationId: customPost
+      requestBody:
+        description: Parameters to send with the custom request.
+        content:
+          application/json:
+            schema:
+              type: object
+      summary: Send requests to the Algolia REST API
+      description: This method lets you send requests to the Algolia REST API.
+      parameters:
+        - $ref: '#/components/parameters/PathInPath'
+        - $ref: '#/components/parameters/Parameters'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '402':
+          $ref: '#/components/responses/FeatureNotEnabled'
+        '403':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '404':
+          $ref: '#/components/responses/IndexNotFound'
+      tags:
+        - analytics
+    put:
+      operationId: customPut
+      requestBody:
+        description: Parameters to send with the custom request.
+        content:
+          application/json:
+            schema:
+              type: object
+      summary: Send requests to the Algolia REST API
+      description: This method lets you send requests to the Algolia REST API.
+      parameters:
+        - $ref: '#/components/parameters/PathInPath'
+        - $ref: '#/components/parameters/Parameters'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '402':
+          $ref: '#/components/responses/FeatureNotEnabled'
+        '403':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '404':
+          $ref: '#/components/responses/IndexNotFound'
+      tags:
+        - analytics
+    delete:
+      operationId: customDelete
+      summary: Send requests to the Algolia REST API
+      description: This method lets you send requests to the Algolia REST API.
+      parameters:
+        - $ref: '#/components/parameters/PathInPath'
+        - $ref: '#/components/parameters/Parameters'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '402':
+          $ref: '#/components/responses/FeatureNotEnabled'
+        '403':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '404':
+          $ref: '#/components/responses/IndexNotFound'
+      tags:
+        - analytics
+  /2/searches:
+    get:
+      tags:
+        - analytics
+      operationId: getTopSearches
+      x-acl:
+        - analytics
+      summary: Retrieve top searches
+      description: >
+        Returns the most popular searches. For each search, it also includes the
+        average number of hits.
+
+
+        If you set the `clickAnalytics` query parameter to `true`, the response
+        also includes
+
+
+        - Tracked searches count. Tracked searches are Search API requests with
+        the `clickAnalytics` parameter set to `true`. This differs from the
+        response's `count`, which shows the overall number of searches,
+        including those where `clickAnalytics` is `false`.
+
+        - Click count
+
+        - Click-through rate (CTR)
+
+        - Conversion count
+
+        - Conversion rate (CR)
+
+        - Average click position
+
+
+        If you set the `revenueAnalytics` query parameter to `true`, the
+        response also includes:
+
+
+        - Add-to-cart count
+
+        - Add-to-cart rate (ATCR)
+
+        - Purchase count
+
+        - Purchase rate
+
+        - Revenue details for each currency
+
+
+        **There's a difference between 0% rates and null rates:**
+
+
+        - **Null** means there were no queries: since Algolia didn't receive any
+        events, the rates (CTR, CR, ATCR, purchase rate) are null.
+
+        - **0% rates** mean there _were_ queries but no [click or conversion
+        events](https://www.algolia.com/doc/guides/sending-events/getting-started/)
+        were received.
+      parameters:
+        - $ref: '#/components/parameters/Index'
+        - $ref: '#/components/parameters/ClickAnalytics'
+        - $ref: '#/components/parameters/RevenueAnalytics'
+        - $ref: '#/components/parameters/StartDate'
+        - $ref: '#/components/parameters/EndDate'
+        - $ref: '#/components/parameters/OrderBy'
+        - $ref: '#/components/parameters/Direction'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+        - $ref: '#/components/parameters/Tags'
+      responses:
+        '200':
+          description: OK
+          headers:
+            x-ratelimit-limit:
+              $ref: '#/components/headers/x-ratelimit-limit'
+            x-ratelimit-remaining:
+              $ref: '#/components/headers/x-ratelimit-remaining'
+            x-ratelimit-reset:
+              $ref: '#/components/headers/x-ratelimit-reset'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getTopSearchesResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '402':
+          $ref: '#/components/responses/FeatureNotEnabled'
+        '403':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '404':
+          $ref: '#/components/responses/IndexNotFound'
+  /2/searches/count:
+    get:
+      tags:
+        - analytics
+      operationId: getSearchesCount
+      x-acl:
+        - analytics
+      summary: Retrieve number of searches
+      description: >
+        Retrieves the number of searches within a time range, including a daily
+        breakdown.
+
+
+        By default, the analyzed period includes the last eight days including
+        the current day.
+      parameters:
+        - $ref: '#/components/parameters/Index'
+        - $ref: '#/components/parameters/StartDate'
+        - $ref: '#/components/parameters/EndDate'
+        - $ref: '#/components/parameters/Tags'
+      responses:
+        '200':
+          description: OK
+          headers:
+            x-ratelimit-limit:
+              $ref: '#/components/headers/x-ratelimit-limit'
+            x-ratelimit-remaining:
+              $ref: '#/components/headers/x-ratelimit-remaining'
+            x-ratelimit-reset:
+              $ref: '#/components/headers/x-ratelimit-reset'
+          content:
+            application/json:
+              schema:
+                title: getSearchesCountResponse
+                type: object
+                additionalProperties: false
+                required:
+                  - dates
+                  - count
+                properties:
+                  count:
+                    $ref: '#/components/schemas/parameters_count'
+                  dates:
+                    type: array
+                    description: Daily number of searches.
+                    items:
+                      title: dailySearches
+                      type: object
+                      additionalProperties: false
+                      required:
+                        - date
+                        - count
+                      properties:
+                        date:
+                          $ref: '#/components/schemas/date'
+                        count:
+                          $ref: '#/components/schemas/parameters_count'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '402':
+          $ref: '#/components/responses/FeatureNotEnabled'
+        '403':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '404':
+          $ref: '#/components/responses/IndexNotFound'
+  /2/searches/noResults:
+    get:
+      tags:
+        - analytics
+      operationId: getSearchesNoResults
+      x-acl:
+        - analytics
+      summary: Retrieve the most frequent searches without results
+      description: Retrieves the 1,000 most frequent searches that produced zero results.
+      parameters:
+        - $ref: '#/components/parameters/Index'
+        - $ref: '#/components/parameters/StartDate'
+        - $ref: '#/components/parameters/EndDate'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+        - $ref: '#/components/parameters/Tags'
+      responses:
+        '200':
+          description: OK
+          headers:
+            x-ratelimit-limit:
+              $ref: '#/components/headers/x-ratelimit-limit'
+            x-ratelimit-remaining:
+              $ref: '#/components/headers/x-ratelimit-remaining'
+            x-ratelimit-reset:
+              $ref: '#/components/headers/x-ratelimit-reset'
+          content:
+            application/json:
+              schema:
+                title: getSearchesNoResultsResponse
+                type: object
+                additionalProperties: false
+                required:
+                  - searches
+                properties:
+                  searches:
+                    type: array
+                    description: Searches without results.
+                    items:
+                      title: dailySearchesNoResults
+                      type: object
+                      additionalProperties: false
+                      required:
+                        - search
+                        - count
+                        - withFilterCount
+                      properties:
+                        search:
+                          $ref: '#/components/schemas/search'
+                        count:
+                          $ref: '#/components/schemas/parameters_count'
+                        withFilterCount:
+                          $ref: '#/components/schemas/withFilterCount'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '402':
+          $ref: '#/components/responses/FeatureNotEnabled'
+        '403':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '404':
+          $ref: '#/components/responses/IndexNotFound'
+  /2/searches/noClicks:
+    get:
+      tags:
+        - analytics
+      operationId: getSearchesNoClicks
+      x-acl:
+        - analytics
+      summary: Retrieve top searches without clicks
+      description: >
+        Retrieves the most popular searches that didn't lead to any clicks, from
+        the 1,000 most frequent searches.
+
+
+        For each search, it also returns the number of displayed search results
+        that remained unclicked.
+      parameters:
+        - $ref: '#/components/parameters/Index'
+        - $ref: '#/components/parameters/StartDate'
+        - $ref: '#/components/parameters/EndDate'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+        - $ref: '#/components/parameters/Tags'
+      responses:
+        '200':
+          description: OK
+          headers:
+            x-ratelimit-limit:
+              $ref: '#/components/headers/x-ratelimit-limit'
+            x-ratelimit-remaining:
+              $ref: '#/components/headers/x-ratelimit-remaining'
+            x-ratelimit-reset:
+              $ref: '#/components/headers/x-ratelimit-reset'
+          content:
+            application/json:
+              schema:
+                title: getSearchesNoClicksResponse
+                type: object
+                additionalProperties: false
+                required:
+                  - searches
+                properties:
+                  searches:
+                    type: array
+                    description: Searches without any clicks.
+                    items:
+                      title: dailySearchesNoClicks
+                      type: object
+                      additionalProperties: false
+                      required:
+                        - search
+                        - count
+                        - nbHits
+                      properties:
+                        search:
+                          $ref: '#/components/schemas/search'
+                        count:
+                          type: integer
+                          description: Number of tracked searches.
+                          minimum: 1
+                          example: 7
+                        nbHits:
+                          $ref: '#/components/schemas/nbHits'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '402':
+          $ref: '#/components/responses/FeatureNotEnabled'
+        '403':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '404':
+          $ref: '#/components/responses/IndexNotFound'
+  /2/searches/noResultRate:
+    get:
+      tags:
+        - analytics
+      operationId: getNoResultsRate
+      x-acl:
+        - analytics
+      summary: Retrieve no results rate
+      description: >
+        Retrieves the fraction of searches that didn't return any results within
+        a time range, including a daily breakdown.
+
+        It also returns the count of searches and searches without results used
+        to compute the rates.
+
+
+        By default, the analyzed period includes the last eight days including
+        the current day.
+      parameters:
+        - $ref: '#/components/parameters/Index'
+        - $ref: '#/components/parameters/StartDate'
+        - $ref: '#/components/parameters/EndDate'
+        - $ref: '#/components/parameters/Tags'
+      responses:
+        '200':
+          description: OK
+          headers:
+            x-ratelimit-limit:
+              $ref: '#/components/headers/x-ratelimit-limit'
+            x-ratelimit-remaining:
+              $ref: '#/components/headers/x-ratelimit-remaining'
+            x-ratelimit-reset:
+              $ref: '#/components/headers/x-ratelimit-reset'
+          content:
+            application/json:
+              schema:
+                title: getNoResultsRateResponse
+                type: object
+                additionalProperties: false
+                required:
+                  - rate
+                  - count
+                  - noResultCount
+                  - dates
+                properties:
+                  rate:
+                    $ref: '#/components/schemas/noResultsRate'
+                  count:
+                    $ref: '#/components/schemas/count'
+                  noResultCount:
+                    $ref: '#/components/schemas/noResultCount'
+                  dates:
+                    type: array
+                    description: Daily no results rates.
+                    items:
+                      title: dailyNoResultsRates
+                      type: object
+                      additionalProperties: false
+                      required:
+                        - date
+                        - noResultCount
+                        - count
+                        - rate
+                      properties:
+                        date:
+                          $ref: '#/components/schemas/date'
+                        noResultCount:
+                          $ref: '#/components/schemas/noResultCount'
+                        count:
+                          $ref: '#/components/schemas/count'
+                        rate:
+                          $ref: '#/components/schemas/noResultsRate'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '402':
+          $ref: '#/components/responses/FeatureNotEnabled'
+        '403':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '404':
+          $ref: '#/components/responses/IndexNotFound'
+  /2/searches/noClickRate:
+    get:
+      tags:
+        - analytics
+      operationId: getNoClickRate
+      x-acl:
+        - analytics
+      summary: Retrieve no click rate
+      description: >
+        Retrieves the fraction of searches that didn't lead to any click within
+        a time range, including a daily breakdown.
+
+        It also returns the number of tracked searches and tracked searches
+        without clicks.
+
+
+        By default, the analyzed period includes the last eight days including
+        the current day.
+      parameters:
+        - $ref: '#/components/parameters/Index'
+        - $ref: '#/components/parameters/StartDate'
+        - $ref: '#/components/parameters/EndDate'
+        - $ref: '#/components/parameters/Tags'
+      responses:
+        '200':
+          description: OK
+          headers:
+            x-ratelimit-limit:
+              $ref: '#/components/headers/x-ratelimit-limit'
+            x-ratelimit-remaining:
+              $ref: '#/components/headers/x-ratelimit-remaining'
+            x-ratelimit-reset:
+              $ref: '#/components/headers/x-ratelimit-reset'
+          content:
+            application/json:
+              schema:
+                title: getNoClickRateResponse
+                type: object
+                additionalProperties: false
+                required:
+                  - dates
+                  - count
+                  - noClickCount
+                  - rate
+                properties:
+                  rate:
+                    $ref: '#/components/schemas/noClickRate'
+                  count:
+                    $ref: '#/components/schemas/trackedSearchCount'
+                  noClickCount:
+                    $ref: '#/components/schemas/noClickCount'
+                  dates:
+                    type: array
+                    description: Daily no click rates.
+                    items:
+                      title: dailyNoClickRates
+                      type: object
+                      additionalProperties: false
+                      required:
+                        - rate
+                        - count
+                        - noClickCount
+                        - date
+                      properties:
+                        rate:
+                          $ref: '#/components/schemas/noClickRate'
+                        count:
+                          $ref: '#/components/schemas/trackedSearchCount'
+                        noClickCount:
+                          $ref: '#/components/schemas/noClickCount'
+                        date:
+                          $ref: '#/components/schemas/date'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '402':
+          $ref: '#/components/responses/FeatureNotEnabled'
+        '403':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '404':
+          $ref: '#/components/responses/IndexNotFound'
+  /2/hits:
+    get:
+      tags:
+        - analytics
+      operationId: getTopHits
+      x-acl:
+        - analytics
+      summary: Retrieve top search results
+      description: >
+        Retrieves the object IDs of the 1,000 most frequent search results.
+
+
+        If you set the `clickAnalytics` query parameter to true, the response
+        also includes:
+
+
+        - Tracked searches count. Tracked searches are Search API requests with
+        the `clickAnalytics` parameter set to `true`. This differs from the
+        response's `count`, which shows the overall number of searches,
+        including those where `clickAnalytics` is `false`.
+
+        - Click count
+
+        - Click-through rate (CTR)
+
+        - Conversion count
+
+        - Conversion rate (CR)
+
+        - Average click position
+
+
+        If you set the `revenueAnalytics` parameter to `true`, the response also
+        includes:
+
+
+        - Add-to-cart count
+
+        - Add-to-cart rate (ATCR)
+
+        - Purchase count
+
+        - Purchase rate
+
+        - Revenue details for each currency
+
+
+        **There's a difference between 0% rates and null rates:**
+
+
+        - **Null** means there were no queries: since Algolia didn't receive any
+        events, the rates (CTR, CR, ATCR, purchase rate) are null.
+
+        - **0% rates** mean there _were_ queries but no [click or conversion
+        events](https://www.algolia.com/doc/guides/sending-events/getting-started/)
+        were received.
+      parameters:
+        - $ref: '#/components/parameters/Index'
+        - $ref: '#/components/parameters/Search'
+        - $ref: '#/components/parameters/ClickAnalytics'
+        - $ref: '#/components/parameters/RevenueAnalytics'
+        - $ref: '#/components/parameters/StartDate'
+        - $ref: '#/components/parameters/EndDate'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+        - $ref: '#/components/parameters/Tags'
+      responses:
+        '200':
+          description: OK
+          headers:
+            x-ratelimit-limit:
+              $ref: '#/components/headers/x-ratelimit-limit'
+            x-ratelimit-remaining:
+              $ref: '#/components/headers/x-ratelimit-remaining'
+            x-ratelimit-reset:
+              $ref: '#/components/headers/x-ratelimit-reset'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getTopHitsResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '402':
+          $ref: '#/components/responses/FeatureNotEnabled'
+        '403':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '404':
+          $ref: '#/components/responses/IndexNotFound'
+  /2/users/count:
+    get:
+      tags:
+        - analytics
+      operationId: getUsersCount
+      x-acl:
+        - analytics
+      summary: Retrieve number of users
+      description: >
+        Retrieves the number of unique users within a time range, including a
+        daily breakdown.
+
+
+        Since it returns the number of unique users, the sum of the daily values
+        might be different from the total number.
+
+
+        By default:
+
+
+        - Algolia distinguishes search users by their IP address, _unless_ you
+        include a pseudonymous user identifier in your search requests with the
+        `userToken` API parameter or `x-algolia-usertoken` request header.
+
+        - The analyzed period includes the last eight days including the current
+        day.
+      externalDocs:
+        url: https://www.algolia.com/doc/guides/search-analytics/guides/usertoken/
+        description: |
+          Related guide: Distinguish users for analytics.
+      parameters:
+        - $ref: '#/components/parameters/Index'
+        - $ref: '#/components/parameters/StartDate'
+        - $ref: '#/components/parameters/EndDate'
+        - $ref: '#/components/parameters/Tags'
+      responses:
+        '200':
+          description: OK
+          headers:
+            x-ratelimit-limit:
+              $ref: '#/components/headers/x-ratelimit-limit'
+            x-ratelimit-remaining:
+              $ref: '#/components/headers/x-ratelimit-remaining'
+            x-ratelimit-reset:
+              $ref: '#/components/headers/x-ratelimit-reset'
+          content:
+            application/json:
+              schema:
+                title: getUsersCountResponse
+                type: object
+                additionalProperties: false
+                required:
+                  - dates
+                  - count
+                properties:
+                  count:
+                    type: integer
+                    description: Number of unique users.
+                  dates:
+                    type: array
+                    description: Daily number of unique users.
+                    items:
+                      title: dailyUsers
+                      type: object
+                      additionalProperties: false
+                      required:
+                        - date
+                        - count
+                      properties:
+                        date:
+                          $ref: '#/components/schemas/date'
+                        count:
+                          type: integer
+                          description: Number of unique users.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '402':
+          $ref: '#/components/responses/FeatureNotEnabled'
+        '403':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '404':
+          $ref: '#/components/responses/IndexNotFound'
+  /2/filters:
+    get:
+      tags:
+        - analytics
+      operationId: getTopFilterAttributes
+      x-acl:
+        - analytics
+      summary: Retrieve top filters
+      description: >
+        Retrieves the 1,000 most frequently used filter attributes.
+
+
+        These are attributes of your records that you included in the
+        `attributesForFaceting` setting.
+      parameters:
+        - $ref: '#/components/parameters/Index'
+        - $ref: '#/components/parameters/Search'
+        - $ref: '#/components/parameters/StartDate'
+        - $ref: '#/components/parameters/EndDate'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+        - $ref: '#/components/parameters/Tags'
+      responses:
+        '200':
+          description: OK
+          headers:
+            x-ratelimit-limit:
+              $ref: '#/components/headers/x-ratelimit-limit'
+            x-ratelimit-remaining:
+              $ref: '#/components/headers/x-ratelimit-remaining'
+            x-ratelimit-reset:
+              $ref: '#/components/headers/x-ratelimit-reset'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getTopFilterAttributesResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '402':
+          $ref: '#/components/responses/FeatureNotEnabled'
+        '403':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '404':
+          $ref: '#/components/responses/IndexNotFound'
+  /2/filters/{attribute}:
+    get:
+      tags:
+        - analytics
+      operationId: getTopFilterForAttribute
+      x-acl:
+        - analytics
+      summary: Retrieve top filter values
+      description: >
+        Retrieves the 1,000 most frequent filter (facet) values for a filter
+        attribute.
+
+
+        These are attributes of your records that you included in the
+        `attributesForFaceting` setting.
+      parameters:
+        - $ref: '#/components/parameters/Attribute'
+        - $ref: '#/components/parameters/Index'
+        - $ref: '#/components/parameters/Search'
+        - $ref: '#/components/parameters/StartDate'
+        - $ref: '#/components/parameters/EndDate'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+        - $ref: '#/components/parameters/Tags'
+      responses:
+        '200':
+          description: OK
+          headers:
+            x-ratelimit-limit:
+              $ref: '#/components/headers/x-ratelimit-limit'
+            x-ratelimit-remaining:
+              $ref: '#/components/headers/x-ratelimit-remaining'
+            x-ratelimit-reset:
+              $ref: '#/components/headers/x-ratelimit-reset'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getTopFilterForAttributeResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '402':
+          $ref: '#/components/responses/FeatureNotEnabled'
+        '403':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '404':
+          $ref: '#/components/responses/IndexNotFound'
+  /2/filters/noResults:
+    get:
+      tags:
+        - analytics
+      operationId: getTopFiltersNoResults
+      x-acl:
+        - analytics
+      summary: Retrieve top filters for a search without results
+      description: >
+        Retrieves the 1,000 most frequently used filters for a search that
+        didn't return any results.
+
+
+        To get the most frequent searches without results, use the [Retrieve
+        searches without results](#tag/search/operation/getSearchesNoResults)
+        operation.
+      parameters:
+        - $ref: '#/components/parameters/Index'
+        - $ref: '#/components/parameters/Search'
+        - $ref: '#/components/parameters/StartDate'
+        - $ref: '#/components/parameters/EndDate'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+        - $ref: '#/components/parameters/Tags'
+      responses:
+        '200':
+          description: OK
+          headers:
+            x-ratelimit-limit:
+              $ref: '#/components/headers/x-ratelimit-limit'
+            x-ratelimit-remaining:
+              $ref: '#/components/headers/x-ratelimit-remaining'
+            x-ratelimit-reset:
+              $ref: '#/components/headers/x-ratelimit-reset'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getTopFiltersNoResultsResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '402':
+          $ref: '#/components/responses/FeatureNotEnabled'
+        '403':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '404':
+          $ref: '#/components/responses/IndexNotFound'
+  /2/countries:
+    get:
+      tags:
+        - analytics
+      operationId: getTopCountries
+      x-acl:
+        - analytics
+      summary: Retrieve top countries
+      description: Retrieves the countries with the most searches in your index.
+      parameters:
+        - $ref: '#/components/parameters/Index'
+        - $ref: '#/components/parameters/StartDate'
+        - $ref: '#/components/parameters/EndDate'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+        - $ref: '#/components/parameters/Tags'
+      responses:
+        '200':
+          description: OK
+          headers:
+            x-ratelimit-limit:
+              $ref: '#/components/headers/x-ratelimit-limit'
+            x-ratelimit-remaining:
+              $ref: '#/components/headers/x-ratelimit-remaining'
+            x-ratelimit-reset:
+              $ref: '#/components/headers/x-ratelimit-reset'
+          content:
+            application/json:
+              schema:
+                title: getTopCountriesResponse
+                type: object
+                additionalProperties: false
+                required:
+                  - countries
+                properties:
+                  countries:
+                    type: array
+                    description: Countries and number of searches.
+                    items:
+                      title: topCountry
+                      type: object
+                      additionalProperties: false
+                      required:
+                        - country
+                        - count
+                      properties:
+                        country:
+                          description: Country code.
+                          type: string
+                          example: UK
+                        count:
+                          $ref: '#/components/schemas/parameters_count'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '402':
+          $ref: '#/components/responses/FeatureNotEnabled'
+        '403':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '404':
+          $ref: '#/components/responses/IndexNotFound'
+  /2/clicks/averageClickPosition:
+    get:
+      tags:
+        - analytics
+      operationId: getAverageClickPosition
+      x-acl:
+        - analytics
+      summary: Retrieve average click position
+      description: >
+        Retrieves the average click position of your search results, including a
+        daily breakdown.
+
+
+        The average click position is the average of all clicked search result
+        positions.
+
+        For example, if users only ever click on the first result for any
+        search, the average click position is 1.
+
+        By default, the analyzed period includes the last eight days including
+        the current day.
+
+
+        An average of `null` when `clickAnalytics` is enabled means Algolia
+        didn't receive any [click
+        events](https://www.algolia.com/doc/guides/sending-events/getting-started/)
+        for the queries.
+
+        The average is `null` until Algolia receives at least one click event.
+      parameters:
+        - $ref: '#/components/parameters/Index'
+        - $ref: '#/components/parameters/StartDate'
+        - $ref: '#/components/parameters/EndDate'
+        - $ref: '#/components/parameters/Tags'
+      responses:
+        '200':
+          description: OK
+          headers:
+            x-ratelimit-limit:
+              $ref: '#/components/headers/x-ratelimit-limit'
+            x-ratelimit-remaining:
+              $ref: '#/components/headers/x-ratelimit-remaining'
+            x-ratelimit-reset:
+              $ref: '#/components/headers/x-ratelimit-reset'
+          content:
+            application/json:
+              schema:
+                title: getAverageClickPositionResponse
+                type: object
+                additionalProperties: false
+                required:
+                  - average
+                  - clickCount
+                  - dates
+                properties:
+                  average:
+                    $ref: '#/components/schemas/averageClickPosition'
+                  clickCount:
+                    $ref: '#/components/schemas/clickCount'
+                  dates:
+                    type: array
+                    description: Daily average click positions.
+                    items:
+                      title: dailyAverageClicks
+                      type: object
+                      additionalProperties: false
+                      required:
+                        - average
+                        - clickCount
+                        - date
+                      properties:
+                        average:
+                          $ref: '#/components/schemas/averageClickPosition'
+                        clickCount:
+                          $ref: '#/components/schemas/clickCount'
+                        date:
+                          $ref: '#/components/schemas/date'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '402':
+          $ref: '#/components/responses/FeatureNotEnabled'
+        '403':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '404':
+          $ref: '#/components/responses/IndexNotFound'
+  /2/clicks/positions:
+    get:
+      tags:
+        - analytics
+      operationId: getClickPositions
+      x-acl:
+        - analytics
+      summary: Retrieve click positions
+      description: >
+        Retrieves the positions in the search results and their associated
+        number of clicks.
+
+
+        This lets you check how many clicks the first, second, or tenth search
+        results receive.
+
+
+        An average of `0` when `clickAnalytics` is enabled means Algolia didn't
+        receive any [click
+        events](https://www.algolia.com/doc/guides/sending-events/getting-started/)
+        for the queries.
+      parameters:
+        - $ref: '#/components/parameters/Index'
+        - $ref: '#/components/parameters/StartDate'
+        - $ref: '#/components/parameters/EndDate'
+        - $ref: '#/components/parameters/Tags'
+      responses:
+        '200':
+          description: OK
+          headers:
+            x-ratelimit-limit:
+              $ref: '#/components/headers/x-ratelimit-limit'
+            x-ratelimit-remaining:
+              $ref: '#/components/headers/x-ratelimit-remaining'
+            x-ratelimit-reset:
+              $ref: '#/components/headers/x-ratelimit-reset'
+          content:
+            application/json:
+              schema:
+                title: getClickPositionsResponse
+                type: object
+                additionalProperties: false
+                required:
+                  - positions
+                properties:
+                  positions:
+                    $ref: '#/components/schemas/clickPositions'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '402':
+          $ref: '#/components/responses/FeatureNotEnabled'
+        '403':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '404':
+          $ref: '#/components/responses/IndexNotFound'
+  /2/clicks/clickThroughRate:
+    get:
+      tags:
+        - analytics
+      operationId: getClickThroughRate
+      x-acl:
+        - analytics
+      summary: Retrieve click-through rate
+      description: >
+        Retrieves the click-through rate (CTR) for all your searches with at
+        least one click event, including a daily breakdown.
+
+
+        By default, the analyzed period includes the last eight days including
+        the current day.
+
+
+        **There's a difference between a 0 and null CTR when `clickAnalytics` is
+        enabled:**
+
+
+        - **Null** means there were no queries: since Algolia didn't receive any
+        events, CTR is null.
+
+        - **0** mean there _were_ queries but no [click
+        events](https://www.algolia.com/doc/guides/sending-events/getting-started/)
+        were received.
+      parameters:
+        - $ref: '#/components/parameters/Index'
+        - $ref: '#/components/parameters/StartDate'
+        - $ref: '#/components/parameters/EndDate'
+        - $ref: '#/components/parameters/Tags'
+      responses:
+        '200':
+          description: OK
+          headers:
+            x-ratelimit-limit:
+              $ref: '#/components/headers/x-ratelimit-limit'
+            x-ratelimit-remaining:
+              $ref: '#/components/headers/x-ratelimit-remaining'
+            x-ratelimit-reset:
+              $ref: '#/components/headers/x-ratelimit-reset'
+          content:
+            application/json:
+              schema:
+                title: getClickThroughRateResponse
+                type: object
+                additionalProperties: false
+                required:
+                  - dates
+                  - clickCount
+                  - trackedSearchCount
+                  - rate
+                properties:
+                  rate:
+                    $ref: '#/components/schemas/clickThroughRate'
+                  clickCount:
+                    $ref: '#/components/schemas/clickCount'
+                  trackedSearchCount:
+                    $ref: '#/components/schemas/trackedSearchCount'
+                  dates:
+                    type: array
+                    description: Daily click-through rates.
+                    items:
+                      title: dailyClickThroughRates
+                      type: object
+                      additionalProperties: false
+                      required:
+                        - rate
+                        - clickCount
+                        - trackedSearchCount
+                        - date
+                      properties:
+                        rate:
+                          $ref: '#/components/schemas/clickThroughRate'
+                        clickCount:
+                          $ref: '#/components/schemas/clickCount'
+                        trackedSearchCount:
+                          $ref: '#/components/schemas/trackedSearchCount'
+                        date:
+                          $ref: '#/components/schemas/date'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '402':
+          $ref: '#/components/responses/FeatureNotEnabled'
+        '403':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '404':
+          $ref: '#/components/responses/IndexNotFound'
+  /2/conversions/conversionRate:
+    get:
+      tags:
+        - analytics
+      operationId: getConversionRate
+      x-acl:
+        - analytics
+      summary: Retrieve conversion rate
+      description: >
+        Retrieves the conversion rate (CR) for all your searches with at least
+        one conversion event, including a daily breakdown.
+
+
+        By default, the analyzed period includes the last eight days including
+        the current day.
+
+
+        **There's a difference between a 0 and null CR when `clickAnalytics` is
+        enabled:**
+
+
+        - **Null** means there were no queries: since Algolia didn't receive any
+        events, CR is null.
+
+        - **0** mean there _were_ queries but no [conversion
+        events](https://www.algolia.com/doc/guides/sending-events/getting-started/)
+        were received.
+      parameters:
+        - $ref: '#/components/parameters/Index'
+        - $ref: '#/components/parameters/StartDate'
+        - $ref: '#/components/parameters/EndDate'
+        - $ref: '#/components/parameters/Tags'
+      responses:
+        '200':
+          description: OK
+          headers:
+            x-ratelimit-limit:
+              $ref: '#/components/headers/x-ratelimit-limit'
+            x-ratelimit-remaining:
+              $ref: '#/components/headers/x-ratelimit-remaining'
+            x-ratelimit-reset:
+              $ref: '#/components/headers/x-ratelimit-reset'
+          content:
+            application/json:
+              schema:
+                title: getConversionRateResponse
+                type: object
+                additionalProperties: false
+                required:
+                  - dates
+                  - trackedSearchCount
+                  - conversionCount
+                  - rate
+                properties:
+                  rate:
+                    $ref: '#/components/schemas/conversionRate'
+                  trackedSearchCount:
+                    $ref: '#/components/schemas/trackedSearchCount'
+                  conversionCount:
+                    $ref: '#/components/schemas/conversionCount'
+                  dates:
+                    type: array
+                    description: Daily conversion rates.
+                    items:
+                      title: dailyConversionRates
+                      type: object
+                      additionalProperties: false
+                      required:
+                        - rate
+                        - trackedSearchCount
+                        - conversionCount
+                        - date
+                      properties:
+                        rate:
+                          $ref: '#/components/schemas/conversionRate'
+                        trackedSearchCount:
+                          $ref: '#/components/schemas/trackedSearchCount'
+                        conversionCount:
+                          $ref: '#/components/schemas/conversionCount'
+                        date:
+                          $ref: '#/components/schemas/date'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '402':
+          $ref: '#/components/responses/FeatureNotEnabled'
+        '403':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '404':
+          $ref: '#/components/responses/IndexNotFound'
+  /2/conversions/addToCartRate:
+    get:
+      tags:
+        - analytics
+      operationId: getAddToCartRate
+      x-acl:
+        - analytics
+      summary: Retrieve add-to-cart rate
+      description: >
+        Retrieves the add-to-cart rate for all your searches with at least one
+        add-to-cart event, including a daily breakdown.
+
+
+        By default, the analyzed period includes the last eight days including
+        the current day.
+
+
+        The rate is the number of add-to-cart conversion events divided by the
+        number of tracked searches.
+
+        A search is tracked if it returns a queryID (`clickAnalytics` is
+        `true`).
+
+        This differs from the response's `count`, which shows the overall number
+        of searches, including those where `clickAnalytics` is `false`.
+
+
+        **There's a difference between a 0 and null add-to-cart rate when
+        `clickAnalytics` is enabled:**
+
+
+        - **Null** means there were no queries: since Algolia didn't receive any
+        events, the add-to-cart rate is null.
+
+        - **0** mean there _were_ queries but no [add-to-cart
+        events](https://www.algolia.com/doc/guides/sending-events/getting-started/)
+        were received.
+      parameters:
+        - $ref: '#/components/parameters/Index'
+        - $ref: '#/components/parameters/StartDate'
+        - $ref: '#/components/parameters/EndDate'
+        - $ref: '#/components/parameters/Tags'
+      responses:
+        '200':
+          description: OK
+          headers:
+            x-ratelimit-limit:
+              $ref: '#/components/headers/x-ratelimit-limit'
+            x-ratelimit-remaining:
+              $ref: '#/components/headers/x-ratelimit-remaining'
+            x-ratelimit-reset:
+              $ref: '#/components/headers/x-ratelimit-reset'
+          content:
+            application/json:
+              schema:
+                title: getAddToCartRateResponse
+                type: object
+                additionalProperties: false
+                required:
+                  - dates
+                  - trackedSearchCount
+                  - addToCartCount
+                  - rate
+                properties:
+                  rate:
+                    $ref: '#/components/schemas/addToCartRate'
+                  trackedSearchCount:
+                    $ref: '#/components/schemas/trackedSearchCount'
+                  addToCartCount:
+                    $ref: '#/components/schemas/addToCartCount'
+                  dates:
+                    type: array
+                    description: Daily add-to-cart rates.
+                    items:
+                      title: dailyAddToCartRates
+                      type: object
+                      additionalProperties: false
+                      required:
+                        - rate
+                        - trackedSearchCount
+                        - addToCartCount
+                        - date
+                      properties:
+                        rate:
+                          $ref: '#/components/schemas/addToCartRate'
+                        trackedSearchCount:
+                          $ref: '#/components/schemas/trackedSearchCount'
+                        addToCartCount:
+                          $ref: '#/components/schemas/addToCartCount'
+                        date:
+                          $ref: '#/components/schemas/date'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '402':
+          $ref: '#/components/responses/FeatureNotEnabled'
+        '403':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '404':
+          $ref: '#/components/responses/IndexNotFound'
+  /2/conversions/purchaseRate:
+    get:
+      tags:
+        - analytics
+      operationId: getPurchaseRate
+      x-acl:
+        - analytics
+      summary: Retrieve purchase rate
+      description: >
+        Retrieves the purchase rate for all your searches with at least one
+        purchase event, including a daily breakdown.
+
+
+        By default, the analyzed period includes the last eight days including
+        the current day.
+
+
+        The rate is the number of purchase conversion events divided by the
+        number of tracked searches.
+
+        A search is tracked if it returns a query ID (`clickAnalytics` is
+        `true`).
+
+        This differs from the response's `count`, which shows the overall number
+        of searches, including those where `clickAnalytics` is `false`.
+
+
+        **There's a difference between a 0 and null purchase rate when
+        `clickAnalytics` is enabled:**
+
+
+        - **Null** means there were no queries: since Algolia didn't receive any
+        events, the purchase rate is null.
+
+        - **0** mean there _were_ queries but no [purchase conversion
+        events](https://www.algolia.com/doc/guides/sending-events/getting-started/)
+        were received.
+      parameters:
+        - $ref: '#/components/parameters/Index'
+        - $ref: '#/components/parameters/StartDate'
+        - $ref: '#/components/parameters/EndDate'
+        - $ref: '#/components/parameters/Tags'
+      responses:
+        '200':
+          description: OK
+          headers:
+            x-ratelimit-limit:
+              $ref: '#/components/headers/x-ratelimit-limit'
+            x-ratelimit-remaining:
+              $ref: '#/components/headers/x-ratelimit-remaining'
+            x-ratelimit-reset:
+              $ref: '#/components/headers/x-ratelimit-reset'
+          content:
+            application/json:
+              schema:
+                title: getPurchaseRateResponse
+                type: object
+                additionalProperties: false
+                required:
+                  - dates
+                  - trackedSearchCount
+                  - purchaseCount
+                  - rate
+                properties:
+                  rate:
+                    $ref: '#/components/schemas/purchaseRate'
+                  trackedSearchCount:
+                    $ref: '#/components/schemas/trackedSearchCount'
+                  purchaseCount:
+                    $ref: '#/components/schemas/purchaseCount'
+                  dates:
+                    type: array
+                    description: Daily purchase rates.
+                    items:
+                      title: dailyPurchaseRates
+                      type: object
+                      additionalProperties: false
+                      required:
+                        - rate
+                        - trackedSearchCount
+                        - purchaseCount
+                        - date
+                      properties:
+                        rate:
+                          $ref: '#/components/schemas/purchaseRate'
+                        trackedSearchCount:
+                          $ref: '#/components/schemas/trackedSearchCount'
+                        purchaseCount:
+                          $ref: '#/components/schemas/purchaseCount'
+                        date:
+                          $ref: '#/components/schemas/date'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '402':
+          $ref: '#/components/responses/FeatureNotEnabled'
+        '403':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '404':
+          $ref: '#/components/responses/IndexNotFound'
+  /2/conversions/revenue:
+    get:
+      tags:
+        - analytics
+      operationId: getRevenue
+      x-acl:
+        - analytics
+      summary: Retrieve revenue data
+      description: >
+        Retrieves revenue-related metrics, such as the total revenue or the
+        average order value.
+
+
+        To retrieve revenue-related metrics, send purchase events.
+
+        By default, the analyzed period includes the last eight days including
+        the current day.
+
+
+        Revenue is based on purchase conversion events (a conversion event with
+        an `eventSubtype` attribute of `purchase`).
+
+        The revenue is the `price` attribute multiplied by the `quantity`
+        attribute for each object in the event's `objectData` array.
+      parameters:
+        - $ref: '#/components/parameters/Index'
+        - $ref: '#/components/parameters/StartDate'
+        - $ref: '#/components/parameters/EndDate'
+        - $ref: '#/components/parameters/Tags'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                title: getRevenue
+                type: object
+                additionalProperties: false
+                required:
+                  - currencies
+                  - dates
+                properties:
+                  currencies:
+                    $ref: '#/components/schemas/currencies'
+                  dates:
+                    type: array
+                    description: Daily revenue.
+                    items:
+                      title: dailyRevenue
+                      type: object
+                      additionalProperties: false
+                      required:
+                        - currencies
+                        - date
+                      properties:
+                        currencies:
+                          $ref: '#/components/schemas/currencies'
+                        date:
+                          $ref: '#/components/schemas/date'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '402':
+          $ref: '#/components/responses/FeatureNotEnabled'
+        '403':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '404':
+          $ref: '#/components/responses/IndexNotFound'
+  /2/status:
+    get:
+      tags:
+        - analytics
+      operationId: getStatus
+      x-acl:
+        - analytics
+      summary: Retrieve update status
+      description: >
+        Retrieves the time when the Analytics data for the specified index was
+        last updated.
+
+
+        If the index has been recently created or no search has been performed
+        yet the updated time is `null`.
+
+
+        The Analytics data is updated every 5&nbsp;minutes.
+      parameters:
+        - $ref: '#/components/parameters/Index'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                title: getStatusResponse
+                type: object
+                additionalProperties: false
+                required:
+                  - updatedAt
+                properties:
+                  updatedAt:
+                    $ref: '#/components/schemas/updatedAtNullable'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '402':
+          $ref: '#/components/responses/FeatureNotEnabled'
+        '403':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '404':
+          $ref: '#/components/responses/IndexNotFound'
+  /setClientApiKey:
+    get:
+      x-helper: true
+      x-asynchronous-helper: false
+      tags:
+        - analytics
+      operationId: setClientApiKey
+      summary: Switch the API key used to authenticate requests
+      description: |
+        Switch the API key used to authenticate requests.
+      parameters:
+        - in: query
+          name: apiKey
+          description: API key to be used from now on.
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: No content.
+components:
+  securitySchemes:
+    appId:
+      type: apiKey
+      in: header
+      name: x-algolia-application-id
+      description: Your Algolia application ID.
+    apiKey:
+      type: apiKey
+      in: header
+      name: x-algolia-api-key
+      description: >
+        Your Algolia API key with the necessary permissions to make the request.
+
+        Permissions are controlled through access control lists (ACL) and access
+        restrictions.
+
+        The required ACL to make a request is listed in each endpoint's
+        reference.
+  parameters:
+    PathInPath:
+      name: path
+      in: path
+      description: Path of the endpoint, anything after "/1" must be specified.
+      required: true
+      schema:
+        type: string
+        example: /keys
+    Parameters:
+      name: parameters
+      in: query
+      description: Query parameters to apply to the current query.
+      schema:
+        type: object
+        additionalProperties: true
+    Index:
+      in: query
+      name: index
+      description: Index name.
+      required: true
+      schema:
+        type: string
+        example: ALGOLIA_INDEX_NAME
+    ClickAnalytics:
+      in: query
+      name: clickAnalytics
+      description: >-
+        Whether to include metrics related to click and conversion events in the
+        response.
+      schema:
+        type: boolean
+        default: false
+    RevenueAnalytics:
+      in: query
+      name: revenueAnalytics
+      description: Whether to include metrics related to revenue events in the response.
+      schema:
+        type: boolean
+        default: false
+    StartDate:
+      in: query
+      name: startDate
+      description: Start date of the period to analyze, in `YYYY-MM-DD` format.
+      schema:
+        type: string
+        example: '2022-09-19'
+    EndDate:
+      in: query
+      name: endDate
+      description: End date of the period to analyze, in `YYYY-MM-DD` format.
+      schema:
+        type: string
+        example: '2023-01-21'
+    OrderBy:
+      in: query
+      name: orderBy
+      description: >
+        Attribute by which to order the response items.
+
+
+        If the `clickAnalytics` parameter is false, only `searchCount` is
+        available.
+      schema:
+        $ref: '#/components/schemas/orderBy'
+    Direction:
+      in: query
+      name: direction
+      description: |
+        Sorting direction of the results: ascending or descending.
+      schema:
+        $ref: '#/components/schemas/direction'
+    Limit:
+      in: query
+      name: limit
+      description: |
+        Number of items to return.
+      required: false
+      schema:
+        type: integer
+        default: 10
+        maximum: 1000
+    Offset:
+      in: query
+      name: offset
+      description: |
+        Position of the first item to return.
+      required: false
+      schema:
+        type: integer
+        default: 0
+        minimum: 0
+    Tags:
+      name: tags
+      in: query
+      description: >
+        Tags by which to segment the analytics.
+
+
+        You can combine multiple tags with `OR` and `AND`.
+
+        Tags must be URL-encoded.
+
+        For more information, see [Segment your analytics
+        data](https://www.algolia.com/doc/guides/search-analytics/guides/segments/).
+      example: device:mobile%20phone
+      schema:
+        type: string
+    Search:
+      in: query
+      name: search
+      description: Search query.
+      example: enable ab test
+      schema:
+        type: string
+    Attribute:
+      in: path
+      name: attribute
+      description: Attribute name.
+      required: true
+      schema:
+        type: string
+        example: brand
+  schemas:
+    ErrorBase:
+      description: Error.
+      type: object
+      x-keep-model: true
+      additionalProperties: true
+      properties:
+        message:
+          type: string
+          example: Invalid Application-Id or API-Key
+    orderBy:
+      type: string
+      description: >
+        Attribute by which to order the response items.
+
+
+        If the `clickAnalytics` parameter is false, only `searchCount` is
+        available.
+      enum:
+        - searchCount
+        - clickThroughRate
+        - conversionRate
+        - averageClickPosition
+      default: searchCount
+    direction:
+      type: string
+      enum:
+        - asc
+        - desc
+      default: asc
+    search:
+      description: Search query.
+      example: separator
+      type: string
+    count:
+      description: Number of searches.
+      type: integer
+      example: 504
+    nbHits:
+      type: integer
+      description: Number of results (hits).
+      example: 20
+    topSearchesResponse:
+      type: object
+      title: Top searches
+      additionalProperties: false
+      required:
+        - searches
+      properties:
+        searches:
+          type: array
+          description: Most popular searches and their number of search results (hits).
+          items:
+            title: topSearch
+            type: object
+            additionalProperties: false
+            required:
+              - search
+              - count
+              - nbHits
+            properties:
+              search:
+                $ref: '#/components/schemas/search'
+              count:
+                $ref: '#/components/schemas/count'
+              nbHits:
+                $ref: '#/components/schemas/nbHits'
+    clickThroughRate:
+      oneOf:
+        - type: number
+          format: double
+          description: >
+            Click-through rate: calculated as the number of tracked searches
+            with at least one click event divided by the number of tracked
+            searches.
+
+            If null, Algolia didn't receive any search requests with
+            `clickAnalytics` set to true.
+          minimum: 0
+          maximum: 1
+          default: null
+          example: 0.49
+        - type: 'null'
+    averageClickPosition:
+      oneOf:
+        - type: number
+          format: double
+          description: >
+            Average position of a clicked search result in the list of search
+            results.
+
+            If null, Algolia didn't receive any search requests with
+            `clickAnalytics` set to true.
+          minimum: 1
+          example: 2.035
+          default: null
+        - type: 'null'
+    clickPositions:
+      type: array
+      description: >-
+        List of positions in the search results and clicks associated with this
+        search.
+      minItems: 12
+      maxItems: 12
+      items:
+        title: clickPosition
+        type: object
+        description: Click position.
+        properties:
+          position:
+            type: array
+            description: >
+              Range of positions in the search results, using the pattern
+              `[start,end]`.
+
+
+              For positions 11 and up, click events are summed over the
+              specified range.
+
+              `-1` indicates the end of the list of search results.
+            minItems: 2
+            maxItems: 2
+            example:
+              - 21
+              - -1
+            items:
+              type: integer
+          clickCount:
+            type: integer
+            description: Number of times this search has been clicked at that position.
+            example: 24
+            minimum: 0
+            default: 0
+    conversionRate:
+      oneOf:
+        - type: number
+          format: double
+          description: >
+            Conversion rate: calculated as the number of tracked searches with
+            at least one conversion event divided by the number of tracked
+            searches.
+
+            If null, Algolia didn't receive any search requests with
+            `clickAnalytics` set to true.
+          minimum: 0
+          maximum: 1
+          default: null
+          example: 0.05
+        - type: 'null'
+    trackedSearchCount:
+      type: integer
+      example: 2
+      default: 0
+      description: >-
+        Number of tracked searches. Tracked searches are search requests where
+        the `clickAnalytics` parameter is true.
+    clickCount:
+      type: integer
+      description: Number of clicks associated with this search.
+      example: 162
+      minimum: 0
+      default: 0
+    conversionCount:
+      type: integer
+      description: Number of conversions from this search.
+      example: 10
+      minimum: 0
+      default: 0
+    topSearchesResponseWithAnalytics:
+      type: object
+      title: Top searches with click analytics
+      additionalProperties: false
+      required:
+        - searches
+      properties:
+        searches:
+          type: array
+          description: >-
+            Most popular searches and their associated click and conversion
+            metrics.
+          items:
+            title: topSearchWithAnalytics
+            type: object
+            additionalProperties: false
+            required:
+              - search
+              - count
+              - nbHits
+              - clickThroughRate
+              - averageClickPosition
+              - clickPositions
+              - conversionRate
+              - trackedSearchCount
+              - clickCount
+              - conversionCount
+            properties:
+              search:
+                $ref: '#/components/schemas/search'
+              count:
+                $ref: '#/components/schemas/count'
+              clickThroughRate:
+                $ref: '#/components/schemas/clickThroughRate'
+              averageClickPosition:
+                $ref: '#/components/schemas/averageClickPosition'
+              clickPositions:
+                $ref: '#/components/schemas/clickPositions'
+              conversionRate:
+                $ref: '#/components/schemas/conversionRate'
+              trackedSearchCount:
+                $ref: '#/components/schemas/trackedSearchCount'
+              clickCount:
+                $ref: '#/components/schemas/clickCount'
+              conversionCount:
+                $ref: '#/components/schemas/conversionCount'
+              nbHits:
+                $ref: '#/components/schemas/nbHits'
+    currencies:
+      type: object
+      description: |
+        Revenue associated with this search: broken down by currency.
+      default: {}
+      additionalProperties:
+        title: currencyCode
+        x-additionalPropertiesName: currency
+        type: object
+        description: Currency code.
+        properties:
+          currency:
+            type: string
+            description: Currency code.
+            example: USD
+          revenue:
+            type: number
+            format: float
+            description: Revenue associated with this search in this currency.
+            example: 999.98
+    addToCartRate:
+      oneOf:
+        - type: number
+          format: double
+          description: >
+            Add-to-cart rate: calculated as the number of tracked searches with
+            at least one add-to-cart event divided by the number of tracked
+            searches.
+
+            If null, Algolia didn't receive any search requests with
+            `clickAnalytics` set to true.
+          minimum: 0
+          maximum: 1
+          default: null
+          example: 0.1
+        - type: 'null'
+    addToCartCount:
+      type: integer
+      description: Number of add-to-cart events from this search.
+      minimum: 0
+      default: 0
+      example: 10
+    purchaseRate:
+      oneOf:
+        - type: number
+          format: double
+          description: >
+            Purchase rate: calculated as the number of tracked searches with at
+            least one purchase event divided by the number of tracked searches.
+
+            If null, Algolia didn't receive any search requests with
+            `clickAnalytics` set to true.
+          minimum: 0
+          maximum: 1
+          default: null
+          example: 0.05
+        - type: 'null'
+    purchaseCount:
+      type: integer
+      description: Number of purchase events from this search.
+      default: 0
+      example: 10
+    topSearchesResponseWithRevenueAnalytics:
+      type: object
+      title: Top searches with revenue analytics
+      additionalProperties: false
+      required:
+        - searches
+      properties:
+        searches:
+          type: array
+          description: Most popular searches, including their click and revenue metrics.
+          items:
+            title: topSearchWithRevenueAnalytics
+            type: object
+            additionalProperties: false
+            required:
+              - search
+              - count
+              - nbHits
+              - clickThroughRate
+              - averageClickPosition
+              - clickPositions
+              - conversionRate
+              - trackedSearchCount
+              - clickCount
+              - conversionCount
+              - currencies
+              - addToCartRate
+              - addToCartCount
+              - purchaseRate
+              - purchaseCount
+            properties:
+              search:
+                $ref: '#/components/schemas/search'
+              count:
+                $ref: '#/components/schemas/count'
+              clickThroughRate:
+                $ref: '#/components/schemas/clickThroughRate'
+              averageClickPosition:
+                $ref: '#/components/schemas/averageClickPosition'
+              clickPositions:
+                $ref: '#/components/schemas/clickPositions'
+              conversionRate:
+                $ref: '#/components/schemas/conversionRate'
+              trackedSearchCount:
+                $ref: '#/components/schemas/trackedSearchCount'
+              clickCount:
+                $ref: '#/components/schemas/clickCount'
+              conversionCount:
+                $ref: '#/components/schemas/conversionCount'
+              nbHits:
+                $ref: '#/components/schemas/nbHits'
+              currencies:
+                $ref: '#/components/schemas/currencies'
+              addToCartRate:
+                $ref: '#/components/schemas/addToCartRate'
+              addToCartCount:
+                $ref: '#/components/schemas/addToCartCount'
+              purchaseRate:
+                $ref: '#/components/schemas/purchaseRate'
+              purchaseCount:
+                $ref: '#/components/schemas/purchaseCount'
+    getTopSearchesResponse:
+      oneOf:
+        - $ref: '#/components/schemas/topSearchesResponse'
+        - $ref: '#/components/schemas/topSearchesResponseWithAnalytics'
+        - $ref: '#/components/schemas/topSearchesResponseWithRevenueAnalytics'
+    parameters_count:
+      description: Number of occurrences.
+      example: 2
+      type: integer
+    date:
+      type: string
+      description: Date in the format YYYY-MM-DD.
+      example: '2023-06-14'
+    withFilterCount:
+      type: integer
+      description: Number of searches for this term with applied filters.
+      example: 5
+      minimum: 0
+      default: 0
+    noResultsRate:
+      type: number
+      format: double
+      description: >
+        No results rate: calculated as the number of searches with zero results
+        divided by the total number of searches.
+      minimum: 0
+      maximum: 1
+      example: 0.49
+    noResultCount:
+      description: Number of searches without any results.
+      type: integer
+      example: 54
+    noClickRate:
+      type: number
+      format: double
+      description: >
+        No click rate: calculated as the number of tracked searches without
+        clicks divided by the number of tracked searches.
+      minimum: 0
+      maximum: 1
+      example: 0.15
+    noClickCount:
+      type: integer
+      description: Number of times this search was returned as a result without any click.
+      example: 15
+      minimum: 1
+    hit:
+      description: Object ID of a record returned as a search result.
+      type: string
+      example: method-export-rules-php
+    topHitsResponse:
+      type: object
+      title: Top search results
+      additionalProperties: false
+      required:
+        - hits
+      properties:
+        hits:
+          type: array
+          description: Most frequent search results.
+          items:
+            title: topHit
+            type: object
+            additionalProperties: false
+            required:
+              - hit
+              - count
+            properties:
+              hit:
+                $ref: '#/components/schemas/hit'
+              count:
+                $ref: '#/components/schemas/parameters_count'
+    topHitsResponseWithAnalytics:
+      type: object
+      title: Top search results with click analytics
+      additionalProperties: false
+      required:
+        - hits
+      properties:
+        hits:
+          type: array
+          description: Most frequent search results with click and conversion metrics.
+          items:
+            title: topHitWithAnalytics
+            type: object
+            additionalProperties: false
+            required:
+              - hit
+              - count
+              - clickThroughRate
+              - conversionRate
+              - trackedHitCount
+              - clickCount
+              - conversionCount
+            properties:
+              hit:
+                $ref: '#/components/schemas/hit'
+              count:
+                $ref: '#/components/schemas/parameters_count'
+              clickThroughRate:
+                $ref: '#/components/schemas/clickThroughRate'
+              conversionRate:
+                $ref: '#/components/schemas/conversionRate'
+              trackedHitCount:
+                $ref: '#/components/schemas/trackedSearchCount'
+              clickCount:
+                $ref: '#/components/schemas/clickCount'
+              conversionCount:
+                $ref: '#/components/schemas/conversionCount'
+    topHitsResponseWithRevenueAnalytics:
+      type: object
+      title: Top search results with revenue analytics
+      additionalProperties: false
+      required:
+        - hits
+      properties:
+        hits:
+          type: array
+          description: >-
+            Most frequent search results with click, conversion, and revenue
+            metrics.
+          items:
+            title: topHitWithRevenueAnalytics
+            type: object
+            additionalProperties: false
+            required:
+              - hit
+              - count
+              - clickThroughRate
+              - conversionRate
+              - trackedHitCount
+              - clickCount
+              - conversionCount
+              - purchaseCount
+              - addToCartCount
+              - purchaseRate
+              - addToCartRate
+              - currencies
+            properties:
+              hit:
+                $ref: '#/components/schemas/hit'
+              count:
+                $ref: '#/components/schemas/parameters_count'
+              clickThroughRate:
+                $ref: '#/components/schemas/clickThroughRate'
+              conversionRate:
+                $ref: '#/components/schemas/conversionRate'
+              trackedHitCount:
+                $ref: '#/components/schemas/trackedSearchCount'
+              clickCount:
+                $ref: '#/components/schemas/clickCount'
+              conversionCount:
+                $ref: '#/components/schemas/conversionCount'
+              addToCartRate:
+                $ref: '#/components/schemas/addToCartRate'
+              addToCartCount:
+                $ref: '#/components/schemas/addToCartCount'
+              purchaseRate:
+                $ref: '#/components/schemas/purchaseRate'
+              purchaseCount:
+                $ref: '#/components/schemas/purchaseCount'
+              currencies:
+                $ref: '#/components/schemas/currencies'
+    getTopHitsResponse:
+      oneOf:
+        - $ref: '#/components/schemas/topHitsResponse'
+        - $ref: '#/components/schemas/topHitsResponseWithAnalytics'
+        - $ref: '#/components/schemas/topHitsResponseWithRevenueAnalytics'
+    attribute:
+      description: Attribute name.
+      type: string
+      example: url
+    getTopFilterAttribute:
+      type: object
+      additionalProperties: false
+      required:
+        - attribute
+        - count
+      properties:
+        attribute:
+          $ref: '#/components/schemas/attribute'
+        count:
+          $ref: '#/components/schemas/parameters_count'
+    getTopFilterAttributesResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - attributes
+      properties:
+        attributes:
+          type: array
+          description: Most frequent filters.
+          items:
+            $ref: '#/components/schemas/getTopFilterAttribute'
+    operator:
+      description: |
+        Character that characterizes how the filter is applied.
+
+        For example, for a facet filter `facet:value`, `:` is the operator.
+        For a numeric filter `count>50`, `>` is the operator.
+      type: string
+      enum:
+        - ':'
+        - <
+        - <=
+        - =
+        - '!='
+        - '>'
+        - '>='
+      example: ':'
+    value:
+      description: Attribute value.
+      type: string
+      example: integration
+    getTopFilterForAttribute:
+      type: object
+      additionalProperties: false
+      required:
+        - operator
+        - attribute
+        - value
+        - count
+      properties:
+        attribute:
+          $ref: '#/components/schemas/attribute'
+        operator:
+          $ref: '#/components/schemas/operator'
+        value:
+          $ref: '#/components/schemas/value'
+        count:
+          $ref: '#/components/schemas/parameters_count'
+    getTopFilterForAttributeResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - values
+      properties:
+        values:
+          type: array
+          description: Filter values for an attribute.
+          items:
+            $ref: '#/components/schemas/getTopFilterForAttribute'
+    getTopFiltersNoResultsValue:
+      type: object
+      additionalProperties: false
+      required:
+        - attribute
+        - operator
+        - value
+      properties:
+        attribute:
+          $ref: '#/components/schemas/attribute'
+        operator:
+          $ref: '#/components/schemas/operator'
+        value:
+          $ref: '#/components/schemas/value'
+    getTopFiltersNoResultsValues:
+      type: object
+      additionalProperties: false
+      required:
+        - values
+        - count
+      properties:
+        count:
+          $ref: '#/components/schemas/parameters_count'
+        values:
+          type: array
+          description: Filters with no results.
+          items:
+            $ref: '#/components/schemas/getTopFiltersNoResultsValue'
+    getTopFiltersNoResultsResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - values
+      properties:
+        values:
+          oneOf:
+            - type: array
+              description: >
+                Filters for searches without any results.
+
+                If null, the search term specified with the `search` parameter
+                isn't a search without results,
+
+                or the `search` parameter is absent from the request.
+              items:
+                $ref: '#/components/schemas/getTopFiltersNoResultsValues'
+            - type: 'null'
+    updatedAtNullable:
+      oneOf:
+        - type: string
+          default: null
+          description: Date and time when the object was updated, in RFC 3339 format.
+          example: '2023-07-04T12:49:15Z'
+        - type: 'null'
+  responses:
+    BadRequest:
+      description: Bad request or request arguments.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorBase'
+    FeatureNotEnabled:
+      description: This feature is not enabled on your Algolia account.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorBase'
+    MethodNotAllowed:
+      description: Method not allowed with this API key.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorBase'
+    IndexNotFound:
+      description: Index not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorBase'
+  headers:
+    x-ratelimit-limit:
+      description: Number of allowed requests per one minute.
+      example: 100
+      schema:
+        type: integer
+    x-ratelimit-remaining:
+      description: Number of remaining requests in the current period.
+      example: 99
+      schema:
+        type: integer
+    x-ratelimit-reset:
+      description: >-
+        Timstamp when the rate limit will reset, measured in seconds since the
+        Unix epoch.
+      example: 1710682486
+      schema:
+        type: integer
+x-tagGroups:
+  - name: Metrics
+    tags:
+      - search
+      - click
+      - revenue
+      - filter
+      - user
+  - name: Other
+    tags:
+      - status
