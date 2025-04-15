@@ -74,6 +74,20 @@ try {
     ]),
   });
 
+  const ingestionOpenApiSpec = await loadOpenApiSpec(
+      new URL("../data/ingestion.yml", import.meta.url).pathname
+  );
+
+  registerOpenApiTools({
+    server,
+    dashboardApi,
+    openApiSpec: ingestionOpenApiSpec,
+    allowedOperationIds: new Set([
+      "listTransformations",
+      "getTransformation",
+    ]),
+  });
+
   const transport = new StdioServerTransport();
   await server.connect(transport);
 } catch (err) {
