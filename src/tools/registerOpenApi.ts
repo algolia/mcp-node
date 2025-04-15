@@ -49,6 +49,7 @@ type OpenApiToolsOptions = {
     openApiSpec: OpenApiSpec;
     allowedOperationIds?: Set<string>;
     debug?: boolean;
+    getRegion?: (logRegion?: string) => string;
 };
 
 export async function loadOpenApiSpec(path: string): Promise<OpenApiSpec> {
@@ -69,8 +70,10 @@ export async function registerOpenApiTools({
                                                dashboardApi,
                                                openApiSpec,
                                                allowedOperationIds,
-                                               debug = false,
+                                               getRegion
                                            }: OpenApiToolsOptions) {
+
+
     for (const [path, methods] of Object.entries(openApiSpec.paths)) {
         for (const [method, operation] of Object.entries(methods)) {
             if (!allowedOperationIds?.has(operation.operationId)) {
@@ -82,7 +85,7 @@ export async function registerOpenApiTools({
                 operation.summary || operation.description || "",
                 {
                     ...buildParametersZodSchema(operation),
-                    ...buildUrlParameters(openApiSpec.servers),
+                    ...(getRegion ? {} : buildUrlParameters(openApiSpec.servers)),
                 },
                 buildToolCallback({
                     path,
@@ -90,6 +93,7 @@ export async function registerOpenApiTools({
                     method: method as Methods,
                     parameters: operation.parameters,
                     dashboardApi,
+                    getRegion
                 }) as any // Just trust me bro
             );
         }
@@ -102,6 +106,7 @@ type ToolCallbackBuildOptions = {
     method: Methods;
     parameters: Parameter[];
     dashboardApi: DashboardApi;
+    getRegion?: (logRegion?: string) => string;
 };
 
 function buildToolCallback({
@@ -110,6 +115,7 @@ function buildToolCallback({
                                method,
                                parameters,
                                dashboardApi,
+                               getRegion
                            }: ToolCallbackBuildOptions) {
     return async (callbackParams: {
         applicationId: string;
@@ -118,8 +124,22 @@ function buildToolCallback({
         const {applicationId, requestBody} = callbackParams;
         const apiKey = await dashboardApi.getApiKey(applicationId);
 
+       if (getRegion) {
+           const logRegion = dashboardApi.applicationList?.data.find(
+               (application) => application.id === applicationId
+           )?.attributes.log_region;
+            let newRegion = getRegion(logRegion);
+            if (newRegion) {
+                callbackParams.region = newRegion;
+            }
+
+            console.error("Regions for AppID (LogRegion, Ingestion region)", logRegion, newRegion);
+        }
 
         console.error("Callback params", callbackParams);
+
+
+       console.error("Server base URL", serverBaseUrl);
 
         serverBaseUrl = serverBaseUrl.replace(
             /{([^}]+)}/g,
@@ -192,6 +212,10 @@ function buildParametersZodSchema(operation: Operation) {
     const parametersSchema: Record<string, ZodType> = {
         applicationId: z.string(),
     };
+
+    if (!operation.parameters) {
+        return parametersSchema;
+    }
 
     for (let parameter of operation.parameters) {
         parametersSchema[parameter.name] = jsonSchemaToZod(parameter.schema);

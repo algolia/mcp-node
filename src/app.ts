@@ -82,10 +82,21 @@ try {
     server,
     dashboardApi,
     openApiSpec: ingestionOpenApiSpec,
+    debug: true,
     allowedOperationIds: new Set([
       "listTransformations",
       "getTransformation",
+        "updateTransformation"
     ]),
+    getRegion: (logRegion) => {
+      if (logRegion === "us") {
+        return "us";
+      } else if (logRegion === "de") {
+        return "eu";
+      } else {
+        return "us";
+      }
+    },
   });
 
   const transport = new StdioServerTransport();

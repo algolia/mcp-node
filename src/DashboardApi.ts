@@ -36,7 +36,7 @@ const Application = z.object({
   }),
 });
 
-const ApplicationList = z.object({
+let ApplicationList = z.object({
   data: z.array(Application),
   meta: z.object({
     total_count: z.number(),
@@ -77,6 +77,7 @@ type CreateApiKeyResponse = z.infer<typeof CreateApiKeyResponse>;
 
 export class DashboardApi {
   #options: DashboardApiOptions;
+  public applicationList: ApplicationList | undefined;
 
   constructor(options: DashboardApiOptions) {
     this.#options = options;
@@ -91,7 +92,8 @@ export class DashboardApi {
     const response = await this.#makeRequest(
       `${this.#options.baseUrl}/1/applications`
     );
-    return ApplicationList.parse(await response.json());
+    this.applicationList = ApplicationList.parse(await response.json());
+    return this.applicationList;
   }
 
   async getApiKey(applicationId: string): Promise<string> {

@@ -68,17 +68,16 @@ info:
     `/1/` in each endpoint's URL.
   version: 1.0.0
 servers:
-   - url: https://data.eu.algolia.com
-#  - url: https://data.{region}.algolia.com
-#    variables:
-#      region:
-#        enum:
-#          - eu
-#          - us
-#        default: us
+  - url: https://data.{region}.algolia.com
+    variables:
+      region:
+        enum:
+          - eu
+          - us
+        default: us
 security:
-  - appId: []
-    apiKey: []
+  - appId: [ ]
+    apiKey: [ ]
 tags:
   - name: authentications
     x-displayName: Authentications
