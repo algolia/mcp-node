@@ -36,7 +36,7 @@ const Application = z.object({
   }),
 });
 
-let ApplicationList = z.object({
+const ApplicationList = z.object({
   data: z.array(Application),
   meta: z.object({
     total_count: z.number(),
