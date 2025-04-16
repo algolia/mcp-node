@@ -108,11 +108,12 @@ export class DashboardApi {
 
   async getApiKey(applicationId: string): Promise<string> {
     const apiKeys = this.#options.appState.get("apiKeys");
-    let apiKey = apiKeys[applicationId];
+    let apiKey: string | undefined = apiKeys[applicationId];
 
-    const hasPermissions = await this.#checkApiKeyPermissions(applicationId, apiKey, ACL);
+    const shouldCreateApiKey =
+      !apiKey || (await this.#checkApiKeyPermissions(applicationId, apiKey, ACL));
 
-    if (!apiKey || !hasPermissions) {
+    if (shouldCreateApiKey) {
       apiKey = await this.#createApiKey(applicationId);
       this.#options.appState.update({
         apiKeys: { ...apiKeys, [applicationId]: apiKey },
