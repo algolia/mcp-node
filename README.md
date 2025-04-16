@@ -60,6 +60,7 @@ Algolia Node MCP lets you interact with your Algolia apps and indices. Here are 
 ### Search
 
 - "Search all items in the products index of app Latency where brand = 'Nike' and price < 100."
+- "Retrieve the top 10 best tech books and save them in the books index of app Latency with their ISBN at the objectID."
 
 ### AB Testing
 
