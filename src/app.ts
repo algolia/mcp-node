@@ -14,6 +14,11 @@ const DEFAULT_ALLOW_TOOLS = [
   "searchSingleIndex",
   "searchRules",
   "searchSynonyms",
+  "saveObject",
+  "batch",
+  "multipleBatch",
+  "partialUpdateObject",
+  "deleteByQuery",
   // Analytics
   "getTopSearches",
   "getTopHits",

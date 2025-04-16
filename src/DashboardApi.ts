@@ -87,6 +87,7 @@ const ACL = [
   "addObject",
   "settings",
   "editSettings",
+  "deleteObject",
 ] as Acl[];
 
 export class DashboardApi {
