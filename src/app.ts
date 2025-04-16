@@ -33,6 +33,10 @@ const DEFAULT_ALLOW_TOOLS = [
   "listTasks",
   "listDestinations",
   "listSources",
+  // Usage
+  "retrieveMetricsRegistry",
+  "retrieveMetricsDaily",
+  "retrieveApplicationMetricsHourly",
 ];
 const ALLOW_TOOLS_OPTIONS_TUPLE = [
   "-t, --allow-tools <tools>",

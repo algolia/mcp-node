@@ -22,6 +22,7 @@ import {
   RecommendSpec,
   SearchSpec,
   IngestionSpec,
+  UsageSpec,
 } from "../openApi.ts";
 import { type CliFilteringOptions, getToolFilter, isToolAllowed } from "../toolFilters.ts";
 
@@ -102,6 +103,14 @@ export async function startServer(opts: StartServerOptions) {
       server,
       dashboardApi,
       openApiSpec: MonitoringSpec,
+      toolFilter,
+    });
+
+    // Usage
+    registerOpenApiTools({
+      server,
+      dashboardApi,
+      openApiSpec: UsageSpec,
       toolFilter,
     });
 

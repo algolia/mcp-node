@@ -1,0 +1,362 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Usage API",
+    "version": "2.0.0",
+    "description": "API that returns Algolia usage metrics"
+  },
+  "servers": [
+    {
+      "url": "https://usage.algolia.com",
+      "description": "Production server",
+      "variables": {
+        "applicationId": {}
+      }
+    }
+  ],
+  "paths": {
+    "/2/metrics/registry": {
+      "get": {
+        "summary": "Returns the list of available metrics",
+        "operationId": "retrieveMetricsRegistry",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApplicationsID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of available metrics returned successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetricsRegistryResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedResponse"
+          }
+        }
+      }
+    },
+    "/2/metrics/daily": {
+      "get": {
+        "summary": "Returns a list of billing metrics per day for the specified applications",
+        "operationId": "retrieveMetricsDaily",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApplicationsID"
+          },
+          {
+            "name": "startDate",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "The start date of the period for which the metrics should be returned. The start date should be anterior to current date."
+          },
+          {
+            "name": "endDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "The end date (included) of the period for which the metrics should be returned. The end date should be posterior to start date and not in the future.\nIf unset, the current date will be used."
+          },
+          {
+            "$ref": "#/components/parameters/MetricNames"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of usage metrics returned successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DailyMetricsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "request validation: application is required"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedResponse"
+          }
+        }
+      }
+    },
+    "/2/metrics/hourly/applications/:application": {
+      "get": {
+        "summary": "Returns a list of billing metrics per hour for the specified application",
+        "operationId": "retrieveApplicationMetricsHourly",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApplicationID"
+          },
+          {
+            "$ref": "#/components/parameters/MetricNames"
+          },
+          {
+            "name": "startTime",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "description": "The start time of the period for which the metrics should be returned. The start time should be anterior to current time."
+          },
+          {
+            "name": "endTime",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "description": "The end time (included) of the period for which the metrics should be returned. The end time should be posterior to start time and not in the future.\nIf unset, the current date will be used."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of usage metrics returned successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HourlyApplicationMetricsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "request validation: application is required"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedResponse"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "parameters": {
+      "ApplicationsID": {
+        "name": "application",
+        "in": "query",
+        "description": "List of Algolia Application IDs",
+        "required": true,
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[_a-zA-Z0-9]{1,30}$",
+            "minLength": 1,
+            "maxLength": 30
+          }
+        }
+      },
+      "ApplicationID": {
+        "name": "application",
+        "in": "path",
+        "description": "Algolia Application ID",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "pattern": "^[_a-zA-Z0-9]{1,30}$",
+          "minLength": 1,
+          "maxLength": 30
+        }
+      },
+      "MetricNames": {
+        "name": "name",
+        "in": "query",
+        "required": true,
+        "description": "Any metric name. Available metrics are listed in endpoint /2/metrics/registry",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "responses": {
+      "UnauthorizedResponse": {
+        "description": "Unauthorized",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "integer",
+                  "example": 401
+                },
+                "message": {
+                  "type": "string",
+                  "example": "Invalid credential"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "DailyMetricsResponse": {
+        "type": "object",
+        "properties": {
+          "applications": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/DailyEntries"
+            }
+          }
+        }
+      },
+      "DailyEntries": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/DailyEntry"
+        }
+      },
+      "DailyEntry": {
+        "type": "object",
+        "required": [
+          "date",
+          "values"
+        ],
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date",
+            "description": "The date for the given metric values"
+          },
+          "values": {
+            "$ref": "#/components/schemas/MetricsValues"
+          }
+        }
+      },
+      "MetricsValues": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "description": "Map of metrics values where key is metric name and value is metric value for a given period (day or hour).",
+        "example": {
+          "metric1": 12345,
+          "metric2": 98765
+        }
+      },
+      "HourlyApplicationMetricsResponse": {
+        "type": "object",
+        "properties": {
+          "metrics": {
+            "$ref": "#/components/schemas/HourlyEntries"
+          }
+        }
+      },
+      "HourlyEntries": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/HourlyEntry"
+        }
+      },
+      "HourlyEntry": {
+        "type": "object",
+        "required": [
+          "date",
+          "values"
+        ],
+        "properties": {
+          "time": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The time for the given metric values"
+          },
+          "values": {
+            "$ref": "#/components/schemas/MetricsValues"
+          }
+        }
+      },
+      "MetricsRegistryResponse": {
+        "type": "object",
+        "properties": {
+          "metrics": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MetricDefinition"
+            }
+          }
+        }
+      },
+      "MetricDefinition": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the metric (unique)"
+          },
+          "label": {
+            "type": "string",
+            "description": "The label of the metric"
+          },
+          "description": {
+            "type": "string",
+            "description": "The description of the metric"
+          }
+        },
+        "example": {
+          "name": "queries_operations",
+          "label": "Query operations",
+          "description": "Number of single [queries](https://www.algolia.com/doc/rest-api/search/#search-index-post)"
+        }
+      }
+    },
+    "securitySchemes": {
+      "tokenAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "Base64"
+      }
+    }
+  },
+  "security": [
+    {
+      "tokenAuth": []
+    }
+  ]
+}

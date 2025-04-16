@@ -4,6 +4,7 @@ import RecommendSpecJson from "./data/recommend.json" with { type: "json" };
 import ABTestingSpecJson from "./data/abtesting.json" with { type: "json" };
 import MonitoringSpecJson from "./data/monitoring.json" with { type: "json" };
 import IngestionSpecJson from "./data/ingestion.json" with { type: "json" };
+import UsageSpecJson from "./data/usage-api-v2.json" with { type: "json" };
 
 import { expandAllRefs, type JsonSchema } from "./helpers.ts";
 
@@ -75,6 +76,7 @@ export const RecommendSpec = expandAllRefs(RecommendSpecJson) as OpenApiSpec;
 export const ABTestingSpec = expandAllRefs(ABTestingSpecJson) as OpenApiSpec;
 export const MonitoringSpec = expandAllRefs(MonitoringSpecJson) as OpenApiSpec;
 export const IngestionSpec = expandAllRefs(IngestionSpecJson) as OpenApiSpec;
+export const UsageSpec = expandAllRefs(UsageSpecJson) as OpenApiSpec;
 
 export const ALL_SPECS = [
   SearchSpec,
@@ -83,4 +85,5 @@ export const ALL_SPECS = [
   ABTestingSpec,
   MonitoringSpec,
   IngestionSpec,
+  UsageSpec,
 ];
