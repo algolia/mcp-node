@@ -22,21 +22,33 @@ if (!home) {
 const STORAGE_PATH = path.join(home, ".algolia-mcp");
 const APP_STATE_PATH = path.join(STORAGE_PATH, "state.json");
 
+let SINGLETON: AppStateManager | null = null;
+
 export class AppStateManager {
   #appState: AppState;
 
   static async load() {
-    await mkdir(STORAGE_PATH, { recursive: true });
+    if (!SINGLETON) {
+      await mkdir(STORAGE_PATH, { recursive: true });
 
-    let content: Partial<AppState> = {};
+      let content: Partial<AppState> = {};
 
-    try {
-      content = JSON.parse(
-        await fs.readFile(APP_STATE_PATH, "utf-8")
-      ) as Partial<AppState>;
-    } catch {}
+      try {
+        content = JSON.parse(await fs.readFile(APP_STATE_PATH, "utf-8")) as Partial<AppState>;
+      } catch {
+        console.error(`Could not read app state file at ${APP_STATE_PATH}. Using default state.`);
+      }
 
-    return new AppStateManager({ ...DEFAULT_APP_STATE, ...content });
+      SINGLETON = new AppStateManager({ ...DEFAULT_APP_STATE, ...content });
+    }
+
+    return SINGLETON;
+  }
+
+  static async reset(): Promise<void> {
+    SINGLETON = null;
+
+    await fs.rmdir(STORAGE_PATH, { recursive: true });
   }
 
   constructor(initialState: AppState) {

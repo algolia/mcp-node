@@ -77,7 +77,6 @@ type CreateApiKeyResponse = z.infer<typeof CreateApiKeyResponse>;
 
 export class DashboardApi {
   #options: DashboardApiOptions;
-  public applicationList: ApplicationList | undefined;
 
   constructor(options: DashboardApiOptions) {
     this.#options = options;
@@ -89,11 +88,8 @@ export class DashboardApi {
   }
 
   async getApplications(): Promise<ApplicationList> {
-    const response = await this.#makeRequest(
-      `${this.#options.baseUrl}/1/applications`
-    );
-    this.applicationList = ApplicationList.parse(await response.json());
-    return this.applicationList;
+    const response = await this.#makeRequest(`${this.#options.baseUrl}/1/applications`);
+    return ApplicationList.parse(await response.json());
   }
 
   async getApiKey(applicationId: string): Promise<string> {
@@ -119,7 +115,7 @@ export class DashboardApi {
           acl: ["search", "listIndexes", "analytics", "usage", "settings"],
           description: "API Key created by and for the Algolia MCP Server",
         }),
-      }
+      },
     );
 
     const result = await CreateApiKeyResponse.parse(await response.json());
@@ -127,10 +123,7 @@ export class DashboardApi {
     return result.data.attributes.value;
   }
 
-  async #makeRequest(
-    url: string,
-    requestInit: RequestInit = {}
-  ): Promise<Response> {
+  async #makeRequest(url: string, requestInit: RequestInit = {}): Promise<Response> {
     const response = await fetch(url, {
       ...requestInit,
       headers: {
@@ -140,9 +133,7 @@ export class DashboardApi {
     });
 
     if (await this.#isTokenExpiredResponse(response)) {
-      const refreshResponse = await refreshToken(
-        this.#options.appState.get("refreshToken")
-      );
+      const refreshResponse = await refreshToken(this.#options.appState.get("refreshToken"));
       await this.#options.appState.update({
         accessToken: refreshResponse.access_token,
         refreshToken: refreshResponse.refresh_token,

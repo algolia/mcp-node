@@ -1,107 +1,69 @@
-#!/usr/bin/env -S node --experimental-strip-types
+import { Command } from "commander";
+import { type StartServerOptions } from "./commands/start-server.ts";
+import { type ListToolsOptions } from "./commands/list-tools.ts";
 
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { authenticate } from "./authentication.ts";
-import { AppStateManager } from "./appState.ts";
-import { DashboardApi } from "./DashboardApi.ts";
-import { registerGetUserInfo } from "./tools/registerGetUserInfo.ts";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { registerGetApplications } from "./tools/registerGetApplications.ts";
-import {
-  loadOpenApiSpec,
-  registerOpenApiTools,
-} from "./tools/registerOpenApi.ts";
-import { CONFIG } from "./config.ts";
+const program = new Command("algolia-mcp");
 
-try {
-  const appState = await AppStateManager.load();
-
-  if (!appState.get("accessToken")) {
-    const token = await authenticate();
-
-    await appState.update({
-      accessToken: token.access_token,
-      refreshToken: token.refresh_token,
-    });
-  }
-
-  const dashboardApi = new DashboardApi({
-    baseUrl: CONFIG.dashboardApiBaseUrl,
-    appState,
-  });
-
-  const server = new McpServer({
-    name: "algolia",
-    version: "1.0.0",
-    capabilities: {
-      resources: {},
-      tools: {},
-    },
-  });
-
+const DEFAULT_ALLOW_TOOLS = [
   // Dashboard API Tools
-  registerGetUserInfo(server, dashboardApi);
-  registerGetApplications(server, dashboardApi);
+  "getUserInfo",
+  "getApplications",
+  // Search
+  "listIndices",
+  "getSettings",
+  "searchSingleIndex",
+  "searchRules",
+  "searchSynonyms",
+  // Analytics
+  "getTopSearches",
+  "getTopHits",
+  "getNoResultsRate",
+  // AB Testing
+  "listABTests",
+  // Monitoring
+  "getClustersStatus",
+  "getIncidents",
+];
+const ALLOW_TOOLS_OPTIONS_TUPLE = [
+  "-t, --allow-tools <tools>",
+  "Comma separated list of tool ids",
+  (val: string) => val.split(",").map((s) => s.trim()),
+  DEFAULT_ALLOW_TOOLS,
+] as const;
 
-  // Search API Tools
-  const searchOpenApiSpec = await loadOpenApiSpec(
-    new URL("../data/search.yml", import.meta.url).pathname
-  );
-
-  registerOpenApiTools({
-    server,
-    dashboardApi,
-    openApiSpec: searchOpenApiSpec,
-    allowedOperationIds: new Set([
-      "listIndices",
-      "getSettings",
-      "searchSingleIndex",
-    ]),
+program
+  .command("start-server", { isDefault: true })
+  .description("Starts the Algolia MCP server")
+  .option<string[]>(...ALLOW_TOOLS_OPTIONS_TUPLE)
+  .action(async (opts: StartServerOptions) => {
+    const { startServer } = await import("./commands/start-server.ts");
+    await startServer(opts);
   });
 
-  const analyticsOpenApiSpec = await loadOpenApiSpec(
-    new URL("../data/analytics.yml", import.meta.url).pathname
-  );
-
-  registerOpenApiTools({
-    server,
-    dashboardApi,
-    openApiSpec: analyticsOpenApiSpec,
-    allowedOperationIds: new Set([
-      "getTopSearches",
-      "getTopHits",
-      "getNoResultsRate",
-    ]),
+program
+  .command("authenticate")
+  .description("Authenticate with Algolia")
+  .action(async () => {
+    const { authenticate } = await import("./commands/authenticate.ts");
+    await authenticate();
   });
 
-  const ingestionOpenApiSpec = await loadOpenApiSpec(
-      new URL("../data/ingestion.yml", import.meta.url).pathname
-  );
-
-  registerOpenApiTools({
-    server,
-    dashboardApi,
-    openApiSpec: ingestionOpenApiSpec,
-    debug: true,
-    allowedOperationIds: new Set([
-      "listTransformations",
-      "getTransformation",
-        "updateTransformation"
-    ]),
-    getRegion: (logRegion) => {
-      if (logRegion === "us") {
-        return "us";
-      } else if (logRegion === "de") {
-        return "eu";
-      } else {
-        return "us";
-      }
-    },
+program
+  .command("logout")
+  .description("Remove all stored credentials")
+  .action(async () => {
+    const { logout } = await import("./commands/logout.ts");
+    await logout();
   });
 
-  const transport = new StdioServerTransport();
-  await server.connect(transport);
-} catch (err) {
-  console.error("Error starting server:", err);
-  process.exit(1);
-}
+program
+  .command("list-tools")
+  .description("List available tools")
+  .option<string[]>(...ALLOW_TOOLS_OPTIONS_TUPLE)
+  .option("--all", "List all tools")
+  .action(async (opts: ListToolsOptions) => {
+    const { listTools } = await import("./commands/list-tools.ts");
+    await listTools(opts);
+  });
+
+program.parse();

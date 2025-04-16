@@ -33,18 +33,13 @@ type JsonSchemaPrimitive = {
 export type JsonSchema =
   | JsonSchemaOneOf
   | (JsonSchemaShared &
-      (
-        | JsonSchemaArray
-        | JsonSchemaString
-        | JsonSchemaObject
-        | JsonSchemaPrimitive
-      ));
+      (JsonSchemaArray | JsonSchemaString | JsonSchemaObject | JsonSchemaPrimitive));
 
 export function jsonSchemaToZod(jsonSchema: JsonSchema): ZodType {
   if ("oneOf" in jsonSchema) {
     return z.union(
-      // @ts-expect-error
-      jsonSchema.oneOf.map((s) => jsonSchemaToZod(s))
+      // @ts-expect-error - zod does not like us building a union type dynamically
+      jsonSchema.oneOf.map((s) => jsonSchemaToZod(s)),
     );
   }
 
@@ -75,8 +70,8 @@ export function jsonSchemaToZod(jsonSchema: JsonSchema): ZodType {
             }
 
             return [key, item];
-          })
-        )
+          }),
+        ),
       );
 
       if (!properties || additionalProperties) {
@@ -101,12 +96,9 @@ export function jsonSchemaToZod(jsonSchema: JsonSchema): ZodType {
 
   if (jsonSchema.type === "string" && jsonSchema.enum) {
     zodSchema = zodSchema.describe(
-      [
-        zodSchema.description,
-        `Value must be one of: ${jsonSchema.enum.join(", ")}.`,
-      ]
+      [zodSchema.description, `Value must be one of: ${jsonSchema.enum.join(", ")}.`]
         .filter(Boolean)
-        .join("\n")
+        .join("\n"),
     );
   }
 
@@ -116,6 +108,7 @@ export function jsonSchemaToZod(jsonSchema: JsonSchema): ZodType {
 export function expandAllRefs(json: object) {
   const root = structuredClone(json);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function recursivelyExpand(obj: Record<string, any>): void {
     for (const [key, value] of Object.entries(obj)) {
       if (Array.isArray(value)) {
@@ -147,6 +140,7 @@ export function expandAllRefs(json: object) {
   return root;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function valueAtPath(path: string, target: Record<string, any>): any {
   const parts = path.split("/").slice(1);
   let value = target;

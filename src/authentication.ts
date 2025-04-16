@@ -20,7 +20,7 @@ function generateCodeChallenge(verifier: string) {
 
 async function getAccessToken(
   authorizationCode: string,
-  codeVerifier: string
+  codeVerifier: string,
 ): Promise<TokenResponse> {
   const body = new URLSearchParams({
     client_id: CONFIG.clientId,
@@ -43,9 +43,7 @@ async function getAccessToken(
   return token as TokenResponse;
 }
 
-export async function refreshToken(
-  refreshToken: string
-): Promise<TokenResponse> {
+export async function refreshToken(refreshToken: string): Promise<TokenResponse> {
   const body = new URLSearchParams({
     client_id: CONFIG.clientId,
     redirect_uri: CONFIG.redirectUri,
@@ -74,10 +72,7 @@ export async function authenticate() {
   const codeChallenge = generateCodeChallenge(codeVerifier);
 
   const authorizationUrl = new URL(CONFIG.authEndpoint);
-  authorizationUrl.searchParams.set(
-    "scope",
-    `public keys:manage applications:manage`
-  );
+  authorizationUrl.searchParams.set("scope", `public keys:manage applications:manage`);
   authorizationUrl.searchParams.set("response_type", "code");
   authorizationUrl.searchParams.set("client_id", CONFIG.clientId);
   authorizationUrl.searchParams.set("redirect_uri", CONFIG.redirectUri);
@@ -103,9 +98,7 @@ export async function authenticate() {
           const authorizationCode = url.searchParams.get("code");
 
           res.writeHead(200, { "Content-Type": "text/html" });
-          res.end(
-            "<html><body><script>open(location, '_self').close();</script></body></html>"
-          );
+          res.end("<html><body><script>open(location, '_self').close();</script></body></html>");
 
           if (!authorizationCode) {
             authCodeResolvers.reject(new Error("Authorization code not found"));
