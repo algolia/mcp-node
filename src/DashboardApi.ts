@@ -1,6 +1,9 @@
+import { algoliasearch } from "algoliasearch";
 import z from "zod";
 import { AppStateManager } from "./appState.ts";
 import { refreshToken } from "./authentication.ts";
+
+import type { Acl } from "algoliasearch";
 
 export type DashboardApiOptions = {
   baseUrl: string;
@@ -75,6 +78,17 @@ const CreateApiKeyResponse = z.object({
 });
 type CreateApiKeyResponse = z.infer<typeof CreateApiKeyResponse>;
 
+const ACL = [
+  "search",
+  "listIndexes",
+  "analytics",
+  "usage",
+  "settings",
+  "addObject",
+  "settings",
+  "editSettings",
+] as Acl[];
+
 export class DashboardApi {
   #options: DashboardApiOptions;
 
@@ -96,7 +110,9 @@ export class DashboardApi {
     const apiKeys = this.#options.appState.get("apiKeys");
     let apiKey = apiKeys[applicationId];
 
-    if (!apiKey) {
+    const hasPermissions = await this.#checkApiKeyPermissions(applicationId, apiKey, ACL);
+
+    if (!apiKey || !hasPermissions) {
       apiKey = await this.#createApiKey(applicationId);
       this.#options.appState.update({
         apiKeys: { ...apiKeys, [applicationId]: apiKey },
@@ -106,13 +122,20 @@ export class DashboardApi {
     return apiKey;
   }
 
+  async #checkApiKeyPermissions(appId: string, key: string, acl: Acl[]) {
+    const client = algoliasearch(appId, key);
+    const apiKey = await client.getApiKey({ key });
+
+    return acl.every((permission) => apiKey.acl.includes(permission));
+  }
+
   async #createApiKey(applicationId: string): Promise<string> {
     const response = await this.#makeRequest(
       `${this.#options.baseUrl}/1/applications/${applicationId}/api-keys`,
       {
         method: "POST",
         body: JSON.stringify({
-          acl: ["search", "listIndexes", "analytics", "usage", "settings"],
+          acl: ACL,
           description: "API Key created by and for the Algolia MCP Server",
         }),
       },
