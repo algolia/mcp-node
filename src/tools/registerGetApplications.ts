@@ -11,12 +11,8 @@ export function registerGetApplications(server: McpServer, dashboardApi: Dashboa
     return {
       content: [
         {
-          type: "resource",
-          resource: {
-            mimeType: "application/json",
-            uri: "algolia://applications",
-            text: JSON.stringify(applications),
-          },
+          type: "text",
+          text: JSON.stringify(applications),
         },
       ],
     };

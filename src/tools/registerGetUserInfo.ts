@@ -11,12 +11,8 @@ export function registerGetUserInfo(server: McpServer, dashboardApi: DashboardAp
     return {
       content: [
         {
-          type: "resource",
-          resource: {
-            mimeType: "application/json",
-            uri: "algolia://user",
-            text: JSON.stringify(user),
-          },
+          type: "text",
+          text: JSON.stringify(user),
         },
       ],
     };

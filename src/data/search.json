@@ -49,7 +49,7 @@
   ],
   "security": [
     {
-      "appId": [],
+      "applicationId": [],
       "apiKey": []
     }
   ],
@@ -4142,7 +4142,7 @@
   },
   "components": {
     "securitySchemes": {
-      "appId": {
+      "applicationId": {
         "type": "apiKey",
         "in": "header",
         "name": "x-algolia-application-id",

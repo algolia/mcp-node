@@ -23,6 +23,11 @@ const DEFAULT_ALLOW_TOOLS = [
   // Monitoring
   "getClustersStatus",
   "getIncidents",
+  // Ingestion
+  "listTransformations",
+  "listTasks",
+  "listDestinations",
+  "listSources",
 ];
 const ALLOW_TOOLS_OPTIONS_TUPLE = [
   "-t, --allow-tools <tools>",

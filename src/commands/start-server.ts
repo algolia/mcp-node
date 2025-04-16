@@ -13,7 +13,7 @@ import {
   operationId as GetApplicationsOperationId,
 } from "../tools/registerGetApplications.ts";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { createApiKeyAuthMiddleware, registerOpenApiTools } from "../tools/registerOpenApi.ts";
+import { registerOpenApiTools } from "../tools/registerOpenApi.ts";
 import { CONFIG } from "../config.ts";
 import {
   ABTestingSpec,
@@ -21,6 +21,7 @@ import {
   MonitoringSpec,
   RecommendSpec,
   SearchSpec,
+  IngestionSpec,
 } from "../openApi.ts";
 import { type CliFilteringOptions, getToolFilter, isToolAllowed } from "../toolFilters.ts";
 
@@ -64,15 +65,12 @@ export async function startServer(opts: StartServerOptions) {
       registerGetApplications(server, dashboardApi);
     }
 
-    const apiKeyAuthMiddleware = createApiKeyAuthMiddleware(dashboardApi);
-
     // Search API Tools
     registerOpenApiTools({
       server,
       dashboardApi,
       openApiSpec: SearchSpec,
       toolFilter,
-      requestMiddlewares: [apiKeyAuthMiddleware],
     });
 
     // Analytics API Tools
@@ -81,7 +79,6 @@ export async function startServer(opts: StartServerOptions) {
       dashboardApi,
       openApiSpec: AnalyticsSpec,
       toolFilter,
-      requestMiddlewares: [apiKeyAuthMiddleware],
     });
 
     // Recommend API Tools
@@ -90,7 +87,6 @@ export async function startServer(opts: StartServerOptions) {
       dashboardApi,
       openApiSpec: RecommendSpec,
       toolFilter,
-      requestMiddlewares: [apiKeyAuthMiddleware],
     });
 
     // AB Testing
@@ -99,7 +95,6 @@ export async function startServer(opts: StartServerOptions) {
       dashboardApi,
       openApiSpec: ABTestingSpec,
       toolFilter,
-      requestMiddlewares: [apiKeyAuthMiddleware],
     });
 
     // Monitoring API Tools
@@ -107,6 +102,14 @@ export async function startServer(opts: StartServerOptions) {
       server,
       dashboardApi,
       openApiSpec: MonitoringSpec,
+      toolFilter,
+    });
+
+    // Ingestion API Tools
+    registerOpenApiTools({
+      server,
+      dashboardApi,
+      openApiSpec: IngestionSpec,
       toolFilter,
     });
 

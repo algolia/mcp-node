@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "node --experimental-strip-types src/app.ts",
+    "start": "node --experimental-strip-types --no-warnings=ExperimentalWarnings src/app.ts",
     "type-check": "tsc --noEmit",
     "lint": "eslint --ext .ts src",
-    "build": "bun build ./src/app.ts --compile --target=bun-darwin-arm64 --outfile dist/algolia-mcp-darwin-arm64"
+    "build": "bun build ./src/app.ts --compile"
   },
   "type": "module",
   "keywords": [],
@@ -36,6 +36,5 @@
   },
   "prettier": {
     "printWidth": 100
-  },
-  "packageManager": "yarn@1.22.21+sha1.1959a18351b811cdeedbd484a8f86c3cc3bbaf72"
+  }
 }

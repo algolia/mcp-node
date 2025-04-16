@@ -3,7 +3,7 @@ import { type McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { type DashboardApi } from "../DashboardApi.ts";
 import { jsonSchemaToZod } from "../helpers.ts";
 import { isToolAllowed, type ToolFilter } from "../toolFilters.ts";
-import type { Methods, OpenApiSpec, Operation, Parameter } from "../openApi.ts";
+import type { Methods, OpenApiSpec, Operation, SecurityScheme } from "../openApi.ts";
 
 export type RequestMiddleware = (opts: {
   request: Request;
@@ -19,24 +19,40 @@ type OpenApiToolsOptions = {
   requestMiddlewares?: Array<RequestMiddleware>;
 };
 
-function buildUrlParameters(servers: OpenApiSpec["servers"]) {
-  return Object.keys(servers[0].variables || {}).reduce(
-    (acc, name) => ({ ...acc, [name]: z.string() }),
-    {},
-  );
+function buildUrlParameters(servers: OpenApiSpec["servers"]): Record<string, ZodType> {
+  const vars = servers[0].variables || {};
+
+  return Object.entries(vars).reduce<Record<string, ZodType>>((acc, [name, urlVariable]) => {
+    let schema = z.string();
+    if (urlVariable.description) schema = schema.describe(urlVariable.description);
+
+    acc[name] = schema;
+
+    return acc;
+  }, {});
 }
 
-export const createApiKeyAuthMiddleware =
-  (dashboardApi: DashboardApi): RequestMiddleware =>
-  async ({ request, params }) => {
-    const apiKey = await dashboardApi.getApiKey(params.applicationId);
-    const r = request.clone();
+function buildSecurityParameters(
+  keys: Set<string>,
+  securitySchemes: Record<string, SecurityScheme>,
+): Record<string, ZodType> {
+  const result: Record<string, ZodType> = {};
 
-    r.headers.set("x-algolia-application-id", params.applicationId);
-    r.headers.set("x-algolia-api-key", apiKey);
+  for (const key of keys) {
+    // Special case for API key which we don't want the AI to fill in (it will be added internally)
+    if (key === "apiKey") continue;
 
-    return r;
-  };
+    let schema = z.string();
+
+    if (securitySchemes[key].description) {
+      schema = schema.describe(securitySchemes[key].description);
+    }
+
+    result[key] = schema;
+  }
+
+  return result;
+}
 
 export async function registerOpenApiTools({
   server,
@@ -49,22 +65,34 @@ export async function registerOpenApiTools({
     for (const [method, operation] of Object.entries(methods)) {
       if (!isToolAllowed(operation.operationId, toolFilter)) continue;
 
+      const securityKeys = new Set(
+        [...(openApiSpec.security ?? []), ...(operation.security ?? [])].flatMap((item) =>
+          Object.keys(item),
+        ),
+      );
+      const securitySchemes = openApiSpec.components?.securitySchemes ?? {};
+
+      const toolCallback = buildToolCallback({
+        path,
+        serverBaseUrl: openApiSpec.servers[0].url,
+        method: method as Methods,
+        operation,
+        dashboardApi,
+        requestMiddlewares,
+        securityKeys,
+        securitySchemes: openApiSpec.components?.securitySchemes ?? {},
+      });
+
       server.tool(
         operation.operationId,
         operation.summary || operation.description || "",
         {
-          ...buildParametersZodSchema(operation),
+          ...buildSecurityParameters(securityKeys, securitySchemes),
           ...buildUrlParameters(openApiSpec.servers),
+          ...buildParametersZodSchema(operation),
         },
         // @ts-expect-error - the types are hard to satisfy when building tools dynamically. Just trust me bro.
-        buildToolCallback({
-          path,
-          serverBaseUrl: openApiSpec.servers[0].url,
-          method: method as Methods,
-          parameters: operation.parameters,
-          dashboardApi,
-          requestMiddlewares,
-        }),
+        toolCallback,
       );
     }
   }
@@ -74,7 +102,9 @@ type ToolCallbackBuildOptions = {
   path: string;
   serverBaseUrl: string;
   method: Methods;
-  parameters?: Parameter[];
+  operation: Operation;
+  securityKeys: Set<string>;
+  securitySchemes: Record<string, SecurityScheme>;
   dashboardApi: DashboardApi;
   requestMiddlewares?: Array<RequestMiddleware>;
 };
@@ -83,26 +113,31 @@ function buildToolCallback({
   path,
   serverBaseUrl,
   method,
-  parameters = [],
+  operation,
   requestMiddlewares,
+  securityKeys,
+  securitySchemes,
+  dashboardApi,
 }: ToolCallbackBuildOptions) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return async (params: Record<string, any>) => {
     const { requestBody } = params;
 
+    if (method === "get" && requestBody) {
+      throw new Error("requestBody is not supported for GET requests");
+    }
+
     serverBaseUrl = serverBaseUrl.replace(/{([^}]+)}/g, (_, key) => params[key]);
     const url = new URL(serverBaseUrl);
     url.pathname = path.replace(/{([^}]+)}/g, (_, key) => params[key]);
 
-    for (const parameter of parameters) {
-      if (parameter.in !== "query") continue;
-      // TODO: throw error if param is required and not in callbackParams
-      if (!(parameter.name in params)) continue;
-      url.searchParams.set(parameter.name, params[parameter.name]);
-    }
-
-    if (method === "get" && requestBody) {
-      throw new Error("requestBody is not supported for GET requests");
+    if (operation.parameters) {
+      for (const parameter of operation.parameters) {
+        if (parameter.in !== "query") continue;
+        // TODO: throw error if param is required and not in callbackParams
+        if (!(parameter.name in params)) continue;
+        url.searchParams.set(parameter.name, params[parameter.name]);
+      }
     }
 
     const body = requestBody
@@ -114,6 +149,41 @@ function buildToolCallback({
 
     let request = new Request(url.toString(), { method, body });
 
+    if (securityKeys.size) {
+      for (const key of securityKeys) {
+        const securityScheme = securitySchemes[key];
+
+        if (!securityScheme) {
+          throw new Error(`Security scheme ${key} not found`);
+        } else if (securityScheme.type !== "apiKey") {
+          throw new Error(`Unsupported security scheme type: ${securityScheme.type}`);
+        }
+
+        let value: string;
+
+        if (key === "apiKey") {
+          value = await dashboardApi.getApiKey(params.applicationId);
+        } else {
+          value = params[key];
+        }
+
+        if (!value) {
+          throw new Error(`Missing security parameter: ${key}`);
+        }
+
+        switch (securityScheme.in) {
+          case "header":
+            request.headers.set(securityScheme.name, value);
+            break;
+          case "query":
+            url.searchParams.set(securityScheme.name, value);
+            break;
+          default:
+            throw new Error(`Unsupported security scheme in: ${securityScheme.in}`);
+        }
+      }
+    }
+
     if (requestMiddlewares?.length) {
       for (const middleware of requestMiddlewares) {
         request = await middleware({ request, params });
@@ -121,7 +191,6 @@ function buildToolCallback({
     }
 
     const response = await fetch(request);
-
     const data = await response.json();
 
     return {

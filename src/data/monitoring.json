@@ -70,9 +70,7 @@
             "$ref": "#/components/responses/IndexNotFound"
           }
         },
-        "tags": [
-          "monitoring"
-        ]
+        "tags": ["monitoring"]
       },
       "post": {
         "operationId": "customPost",
@@ -120,9 +118,7 @@
             "$ref": "#/components/responses/IndexNotFound"
           }
         },
-        "tags": [
-          "monitoring"
-        ]
+        "tags": ["monitoring"]
       },
       "put": {
         "operationId": "customPut",
@@ -170,9 +166,7 @@
             "$ref": "#/components/responses/IndexNotFound"
           }
         },
-        "tags": [
-          "monitoring"
-        ]
+        "tags": ["monitoring"]
       },
       "delete": {
         "operationId": "customDelete",
@@ -210,9 +204,7 @@
             "$ref": "#/components/responses/IndexNotFound"
           }
         },
-        "tags": [
-          "monitoring"
-        ]
+        "tags": ["monitoring"]
       }
     },
     "/1/status": {
@@ -220,9 +212,7 @@
         "operationId": "getClustersStatus",
         "summary": "Retrieve status of all clusters",
         "security": [],
-        "tags": [
-          "monitoring"
-        ],
+        "tags": ["monitoring"],
         "description": "Retrieves the status of all Algolia clusters and instances.",
         "responses": {
           "200": {
@@ -239,9 +229,7 @@
         "summary": "Retrieve cluster status",
         "description": "Retrieves the status of selected clusters.",
         "operationId": "getClusterStatus",
-        "tags": [
-          "monitoring"
-        ],
+        "tags": ["monitoring"],
         "security": [],
         "parameters": [
           {
@@ -267,9 +255,7 @@
         "description": "Retrieves known incidents for all clusters.",
         "operationId": "getIncidents",
         "security": [],
-        "tags": [
-          "monitoring"
-        ],
+        "tags": ["monitoring"],
         "responses": {
           "200": {
             "$ref": "#/components/responses/IncidentsResponse"
@@ -285,9 +271,7 @@
         "summary": "Retrieve cluster incidents",
         "description": "Retrieves known incidents for the selected clusters.",
         "operationId": "getClusterIncidents",
-        "tags": [
-          "monitoring"
-        ],
+        "tags": ["monitoring"],
         "security": [],
         "parameters": [
           {
@@ -313,16 +297,14 @@
         "operationId": "getServers",
         "security": [
           {
-            "appId": []
+            "applicationId": []
           },
           {
             "apiKey": []
           }
         ],
         "description": "Retrieves the servers that belong to clusters.\n\nThe response depends on whether you authenticate your API request:\n\n- With authentication, the response lists the servers assigned to your\nAlgolia application's cluster.\n\n- Without authentication, the response lists the servers for all Algolia\nclusters.\n",
-        "tags": [
-          "monitoring"
-        ],
+        "tags": ["monitoring"],
         "responses": {
           "200": {
             "$ref": "#/components/responses/InventoryResponse"
@@ -339,9 +321,7 @@
         "description": "Retrieves the average latency for search requests for selected clusters.",
         "operationId": "getLatency",
         "security": [],
-        "tags": [
-          "monitoring"
-        ],
+        "tags": ["monitoring"],
         "parameters": [
           {
             "$ref": "#/components/parameters/Clusters"
@@ -363,9 +343,7 @@
         "description": "Retrieves average times for indexing operations for selected clusters.",
         "operationId": "getIndexingTime",
         "security": [],
-        "tags": [
-          "monitoring"
-        ],
+        "tags": ["monitoring"],
         "parameters": [
           {
             "$ref": "#/components/parameters/Clusters"
@@ -387,9 +365,7 @@
         "description": "Test whether clusters are reachable or not.",
         "operationId": "getReachability",
         "security": [],
-        "tags": [
-          "monitoring"
-        ],
+        "tags": ["monitoring"],
         "parameters": [
           {
             "$ref": "#/components/parameters/Clusters"
@@ -410,9 +386,7 @@
         "summary": "Retrieve metrics",
         "description": "Retrieves metrics related to your Algolia infrastructure, aggregated over a selected time window.\n\nAccess to this API is available as part of the [Premium or Elevate plans](https://www.algolia.com/pricing).\nYou must authenticate requests with the `x-algolia-application-id` and `x-algolia-api-key` headers (using the Monitoring API key).\n",
         "operationId": "getMetrics",
-        "tags": [
-          "monitoring"
-        ],
+        "tags": ["monitoring"],
         "parameters": [
           {
             "$ref": "#/components/parameters/MetricInPath"
@@ -435,9 +409,7 @@
       "get": {
         "x-helper": true,
         "x-asynchronous-helper": false,
-        "tags": [
-          "monitoring"
-        ],
+        "tags": ["monitoring"],
         "operationId": "setClientApiKey",
         "summary": "Switch the API key used to authenticate requests",
         "description": "Switch the API key used to authenticate requests.\n",
@@ -462,7 +434,7 @@
   },
   "components": {
     "securitySchemes": {
-      "appId": {
+      "applicationId": {
         "type": "apiKey",
         "in": "header",
         "name": "X-Algolia-Application-Id",
@@ -541,12 +513,7 @@
         "title": "status",
         "type": "string",
         "description": "Status of the cluster.",
-        "enum": [
-          "operational",
-          "degraded_performance",
-          "partial_outage",
-          "major_outage"
-        ]
+        "enum": ["operational", "degraded_performance", "partial_outage", "major_outage"]
       },
       "Timestamp": {
         "type": "integer",
@@ -610,16 +577,12 @@
       "ServerStatus": {
         "title": "status",
         "type": "string",
-        "enum": [
-          "PRODUCTION"
-        ]
+        "enum": ["PRODUCTION"]
       },
       "Type": {
         "title": "type",
         "type": "string",
-        "enum": [
-          "cluster"
-        ]
+        "enum": ["cluster"]
       },
       "Server": {
         "title": "server",
@@ -703,13 +666,7 @@
       },
       "Period": {
         "type": "string",
-        "enum": [
-          "minute",
-          "hour",
-          "day",
-          "week",
-          "month"
-        ],
+        "enum": ["minute", "hour", "day", "week", "month"],
         "example": "week"
       },
       "ProbesMetric": {
@@ -1262,12 +1219,7 @@
   "x-tagGroups": [
     {
       "name": "General",
-      "tags": [
-        "status",
-        "incidents",
-        "infrastructure",
-        "monitoring-tag"
-      ]
+      "tags": ["status", "incidents", "infrastructure", "monitoring-tag"]
     }
   ]
 }
