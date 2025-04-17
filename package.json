@@ -7,7 +7,7 @@
     "type-check": "tsc --noEmit",
     "lint": "eslint --ext .ts src",
     "build": "bun build ./src/app.ts --compile",
-    "debug": "npx @modelcontextprotocol/inspector node --experimental-strip-types --no-warnings=ExperimentalWarnings src/app.ts"
+    "debug": "mcp-inspector npm start"
   },
   "type": "module",
   "keywords": [],
@@ -23,6 +23,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.24.0",
+    "@modelcontextprotocol/inspector": "^0.9.0",
     "@types/node": "^22.14.0",
     "bun": "^1.2.9",
     "eslint": "^9.24.0",
