@@ -1,0 +1,23 @@
+name: linting
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Install dependencies
+        run: npm i
+
+      - name: Lint
+        run: npm run -s lint -- --format=./eslint-gh-annotations-formatter.mjs --quiet
