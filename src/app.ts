@@ -1,5 +1,5 @@
 import { Command } from "commander";
-import { type StartServerOptions } from "./commands/start-server.ts";
+import type { StartServerOptions } from "./server/types.ts";
 import { type ListToolsOptions } from "./commands/list-tools.ts";
 
 const program = new Command("algolia-mcp");
@@ -65,6 +65,15 @@ program
   .action(async (opts: StartServerOptions) => {
     const { startServer } = await import("./commands/start-server.ts");
     await startServer(opts);
+  });
+
+program
+  .command("start-sse-server")
+  .description("Starts the remote-ready Algolia MCP server")
+  .option<string[]>(...ALLOW_TOOLS_OPTIONS_TUPLE)
+  .action(async (opts: StartServerOptions) => {
+    const { startSseServer } = await import("./commands/start-sse-server.ts");
+    await startSseServer(opts);
   });
 
 program
