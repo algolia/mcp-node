@@ -4,7 +4,6 @@ type JsonSchemaShared = {
   title?: string;
   description?: string;
 };
-let foo;
 
 type JsonSchemaArray = {
   type: "array";
