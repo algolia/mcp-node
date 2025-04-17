@@ -8,10 +8,7 @@
   "servers": [
     {
       "url": "https://usage.algolia.com",
-      "description": "Production server",
-      "variables": {
-        "applicationId": {}
-      }
+      "description": "Production server"
     }
   ],
   "paths": {
@@ -347,16 +344,24 @@
       }
     },
     "securitySchemes": {
-      "tokenAuth": {
-        "type": "http",
-        "scheme": "bearer",
-        "bearerFormat": "Base64"
+      "applicationId": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-algolia-application-id",
+        "description": "Your Algolia application ID."
+      },
+      "apiKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-algolia-api-key",
+        "description": "Your Algolia API key with the necessary permissions to make the request.\nPermissions are controlled through access control lists (ACL) and access restrictions.\nThe required ACL to make a request is listed in each endpoint's reference.\n"
       }
     }
   },
   "security": [
     {
-      "tokenAuth": []
+      "applicationId": [],
+      "apiKey": []
     }
   ]
 }
