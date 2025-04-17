@@ -1,4 +1,4 @@
-name: linting
+name: type-check
 
 on:
   pull_request:
@@ -19,5 +19,5 @@ jobs:
       - name: Install dependencies
         run: npm i
 
-      - name: Lint
-        run: npm run -s lint -- --format=./.github/eslint-gh-annotations-formatter.mjs --quiet
+      - name: Type Check
+        run: npm run -s type-check | .github/tsc-gh-annotations-formatter.mjs
