@@ -12,7 +12,7 @@
   },
   "servers": [
     {
-      "url": "https://experiences.algolia.com/1",
+      "url": "https://experiences.algolia.com",
       "description": "prod"
     }
   ],
@@ -23,7 +23,7 @@
     }
   ],
   "paths": {
-    "/collections": {
+    "/1/collections": {
       "get": {
         "summary": "Get all collections",
         "description": "Retrieve a list of all collections",
@@ -202,7 +202,7 @@
         }
       }
     },
-    "/collections/{id}": {
+    "/1/collections/{id}": {
       "get": {
         "summary": "Get collections by ID",
         "description": "Retrieve a collection by ID",
@@ -259,7 +259,7 @@
         }
       }
     },
-    "/collections/{id}/commit": {
+    "/1/collections/{id}/commit": {
       "post": {
         "summary": "Evaluates the changes on a collection and replicates them to the index",
         "description": "Evaluates the changes on a collection and replicates them to the index",
