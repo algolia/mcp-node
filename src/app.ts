@@ -1,4 +1,5 @@
 import { Command } from "commander";
+import type { StartServerOptions } from "./server/types.ts";
 import { type ListToolsOptions } from "./commands/list-tools.ts";
 import { ZodError } from "zod";
 
@@ -100,6 +101,15 @@ program
       console.error(formatErrorForCli(error));
       process.exit(1);
     }
+  });
+
+program
+  .command("start-sse-server")
+  .description("Starts the remote-ready Algolia MCP server")
+  .option<string[]>(...ALLOW_TOOLS_OPTIONS_TUPLE)
+  .action(async (opts: StartServerOptions) => {
+    const { startSseServer } = await import("./commands/start-sse-server.ts");
+    await startSseServer(opts);
   });
 
 program
