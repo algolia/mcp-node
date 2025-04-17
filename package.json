@@ -6,7 +6,8 @@
     "start": "node --experimental-strip-types --no-warnings=ExperimentalWarnings src/app.ts",
     "type-check": "tsc --noEmit",
     "lint": "eslint --ext .ts src",
-    "build": "bun build ./src/app.ts --compile"
+    "build": "bun build ./src/app.ts --compile",
+    "debug": "npx @modelcontextprotocol/inspector node --experimental-strip-types --no-warnings=ExperimentalWarnings src/app.ts"
   },
   "type": "module",
   "keywords": [],

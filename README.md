@@ -1,17 +1,19 @@
 # Algolia NodeJS MCP implementation
 
-- [Running the MCP Server (Mac Only)](#running-the-mcp-server-mac-only)
-- [What can I ask for?](#what-can-i-ask-for)
-  - [Account](#account)
-  - [Apps](#apps)
-  - [Search](#search)
-  - [AB Testing](#ab-testing)
-  - [Analytics](#analytics)
-  - [Monitoring](#monitoring)
-- [CLI options](#cli-options)
-  - [List available commands](#list-available-commands)
-  - [Server options](#server-options)
-- [Setup dev environment](#setup-dev-environment)
+- [Algolia NodeJS MCP implementation](#algolia-nodejs-mcp-implementation)
+  - [Running the MCP Server (Mac Only)](#running-the-mcp-server-mac-only)
+  - [What can I ask for?](#what-can-i-ask-for)
+    - [Account](#account)
+    - [Apps](#apps)
+    - [Search](#search)
+    - [AB Testing](#ab-testing)
+    - [Analytics](#analytics)
+    - [Monitoring](#monitoring)
+  - [CLI options](#cli-options)
+    - [List available commands](#list-available-commands)
+    - [Server options](#server-options)
+  - [Setup dev environment](#setup-dev-environment)
+  - [Testing and debugging](#testing-and-debugging)
 
 ## Running the MCP Server (Mac Only)
 
@@ -134,3 +136,16 @@ And then you'll need to configure Claude Desktop like so:
 
 > [!TIP]
 > You'll need to restart Claude Desktop every time you make a modification.
+
+## Testing and debugging
+
+You can test and debug tools using the [MCP Inspector](https://modelcontextprotocol.io/docs/tools/inspector).
+
+Navigate to the respository and run the `debug` script:
+
+```sh
+cd path/to/mcp-node
+npm run debug
+```
+
+Then go to http://127.0.0.1:6274/ and click **Connect** to start the server.
