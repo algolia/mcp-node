@@ -89,7 +89,6 @@ const ACL = [
   "usage",
   "settings",
   "addObject",
-  "settings",
   "editSettings",
   "deleteObject",
   "deleteIndex",
@@ -123,8 +122,7 @@ export class DashboardApi {
     const apiKeys = this.#options.appState.get("apiKeys");
     let apiKey: string | undefined = apiKeys[applicationId];
 
-    const shouldCreateApiKey =
-      !apiKey || (await this.#checkApiKeyPermissions(applicationId, apiKey, ACL));
+    const shouldCreateApiKey = !apiKey || !(await this.#hasRightAcl(applicationId, apiKey, ACL));
 
     if (shouldCreateApiKey) {
       apiKey = await this.#createApiKey(applicationId);
@@ -136,7 +134,7 @@ export class DashboardApi {
     return apiKey;
   }
 
-  async #checkApiKeyPermissions(appId: string, key: string, acl: Acl[]) {
+  async #hasRightAcl(appId: string, key: string, acl: Acl[]) {
     const client = algoliasearch(appId, key);
     const apiKey = await client.getApiKey({ key });
 
