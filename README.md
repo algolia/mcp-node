@@ -24,7 +24,7 @@
 > [!IMPORTANT]
 > Why do you need to run this command?
 > This executable is not signed because I don't have a payed Apple Developer Account.
-> This means that MacOs will "quarantine" it by default when it is downloaded from the internet.
+> This means that macOS will "quarantine" it by default when it is downloaded from the internet.
 > The command remove the quarantine, allowing you to run the program. If you don't trust the build,
 > you can always build it yourself from source with `npm run build` (see development environment setup below) 😄.
 
@@ -34,14 +34,14 @@
 {
   "mcpServers": {
     "algolia-mcp": {
-      "command": "<path_to_executable>",
-      "args": [
-        // See CLI options below
-      ]
+      "command": "<path_to_executable>"
     }
   }
 }
 ```
+
+5. Restart Claude Desktop
+
 
 ## What can I ask for?
 
