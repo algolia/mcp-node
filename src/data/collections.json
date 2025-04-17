@@ -1,0 +1,523 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Collections API",
+    "description": "The Open API spec for Collections",
+    "version": "1.0.0",
+    "termsOfService": "https://www.algolia.com/policies/terms",
+    "license": {
+      "name": "unlicensed",
+      "url": "https://www.algolia.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://experiences.algolia.com/1",
+      "description": "prod"
+    }
+  ],
+  "security": [
+    {
+      "applicationId": [],
+      "apiKey": []
+    }
+  ],
+  "paths": {
+    "/collections": {
+      "get": {
+        "summary": "Get all collections",
+        "description": "Retrieve a list of all collections",
+        "operationId": "listCollections",
+        "tags": ["Collections"],
+        "parameters": [
+          {
+            "name": "indexName",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Name of the index"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 0
+            },
+            "description": "Number of items to skip (default to 0)"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 10
+            },
+            "description": "Number of items per fetch (defaults to 10)"
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Query to filter collections"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A list of collections",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Collection"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "description": "Total number of items"
+                    },
+                    "offset": {
+                      "type": "integer",
+                      "description": "Offset used in this query"
+                    },
+                    "limit": {
+                      "type": "integer",
+                      "description": "Limit used in this query"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Application or index not found"
+          }
+        }
+      },
+      "post": {
+        "summary": "Upserts a collection",
+        "description": "Upserts a collection",
+        "operationId": "upsertCollection",
+        "tags": ["Collections"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "indexName",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "name",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "description",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "add",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "description": "a list of objectIDs",
+              "minItems": 0,
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "remove",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "description": "a list of objectIDs",
+              "minItems": 0,
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "conditions",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Conditions"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Collection updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Collection"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Collection created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Collection"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/collections/{id}": {
+      "get": {
+        "summary": "Get collections by ID",
+        "description": "Retrieve a collection by ID",
+        "operationId": "getCollection",
+        "tags": ["Collections"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The requested collection",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Collection"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Collection not found"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a collection by ID",
+        "description": "Soft deletes a collection by setting `deleted` to true.",
+        "operationId": "deleteCollection",
+        "tags": ["Collections"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Collection deleted successfully"
+          },
+          "404": {
+            "description": "Collection not found"
+          }
+        }
+      }
+    },
+    "/collections/{id}/commit": {
+      "post": {
+        "summary": "Evaluates the changes on a collection and replicates them to the index",
+        "description": "Evaluates the changes on a collection and replicates them to the index",
+        "operationId": "commitCollection",
+        "tags": ["Collections"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Collection committing started",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "job_id": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Collection not found"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Experience": {
+        "type": "object",
+        "required": ["id", "name", "indexName", "createdAt", "updatedAt"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "5db3039e-04b5-4ed6-a00e-ba3304032c5a"
+          },
+          "name": {
+            "type": "string",
+            "example": "Summer Deals"
+          },
+          "indexName": {
+            "type": "string",
+            "example": "prod_products_EN"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-10-07T00:00:00Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-10-07T00:00:00Z"
+          },
+          "blocks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ExperienceBlock"
+            }
+          }
+        }
+      },
+      "ExperienceInput": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "applicationId",
+          "indexName",
+          "createdAt",
+          "updatedAt",
+          "commited",
+          "deleted"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "5db3039e-04b5-4ed6-a00e-ba3304032c5a"
+          },
+          "name": {
+            "type": "string",
+            "example": "Summer Deals"
+          },
+          "indexName": {
+            "type": "string",
+            "example": "prod_products_EN"
+          },
+          "blocks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ExperienceBlock"
+            }
+          }
+        }
+      },
+      "ExperienceBlock": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "ais.index"
+          },
+          "parameters": {
+            "type": "object",
+            "example": {
+              "indexName": "prod_products_EN"
+            }
+          },
+          "children": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ExperienceBlock"
+            },
+            "example": [
+              {
+                "type": "ais.configure",
+                "parameters": {
+                  "hitsPerPage": 12
+                }
+              },
+              {
+                "type": "ais.hits"
+              }
+            ]
+          }
+        }
+      },
+      "Collection": {
+        "type": "object",
+        "required": ["id", "name", "indexName", "createdAt", "updatedAt"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "5db3039e-04b5-4ed6-a00e-ba3304032c5a"
+          },
+          "name": {
+            "type": "string",
+            "example": "Summer Deals"
+          },
+          "indexName": {
+            "type": "string",
+            "example": "prod_products_EN"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-10-07T00:00:00Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-10-07T00:00:00Z"
+          },
+          "status": {
+            "type": "string",
+            "description": "Collection commit status.\nOnly returned if the request API key has write ACLs.\n",
+            "enum": ["COMMITTED", "COMMITTING", "TO_COMMIT"]
+          },
+          "conditions": {
+            "type": "object",
+            "$ref": "#/components/schemas/Conditions"
+          },
+          "records": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "Conditions": {
+        "type": "object",
+        "description": "conditions to filter records.",
+        "properties": {
+          "facetFilters": {
+            "type": "array",
+            "description": "one-level nested array. A nesting indicates OR, filters combined with AND top-level",
+            "items": {
+              "oneOf": [
+                {
+                  "type": "string",
+                  "pattern": "/^[^:]+[^\\\\]*:.+$/",
+                  "example": "brand:Apple",
+                  "examples": {
+                    "normal": {
+                      "value": "brand:Apple",
+                      "summary": "include Apple in the results"
+                    },
+                    "negated": {
+                      "value": "brand:-Apple",
+                      "summary": "exclude Apple from the results"
+                    },
+                    "escaped": {
+                      "value": "discount:\\-50%",
+                      "summary": "include \"-50%\" in the results"
+                    }
+                  }
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "pattern": "/^[^:]+[^\\\\]*:.+$/",
+                    "example": "brand:Samsung"
+                  }
+                }
+              ]
+            }
+          },
+          "numericFilters": {
+            "type": "array",
+            "description": "one-level nested array. A nesting indicates OR, filters combined with AND top-level",
+            "items": {
+              "oneOf": [
+                {
+                  "type": "string",
+                  "pattern": "/(^[^:]+[^\\\\]*:\\d*\\.?\\d* TO \\d*\\.?\\d*$)|(^[^:]+[^\\\\]*(<|<=|=|>=|>)\\d*\\.?\\d*$)/",
+                  "example": "price:5 TO 10"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "pattern": "/(^[^:]+[^\\\\]*:\\d*\\.?\\d* TO \\d*\\.?\\d*$)|(^[^:]+[^\\\\]*(<|<=|=|>=|>)\\d*\\.?\\d*$)/",
+                    "example": "rating<=4.3"
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "applicationId": {
+        "type": "apiKey",
+        "name": "X-ALGOLIA-APPLICATION-ID",
+        "in": "header",
+        "description": "Your Algolia application ID."
+      },
+      "apiKey": {
+        "type": "apiKey",
+        "name": "X-ALGOLIA-API-KEY",
+        "in": "header",
+        "description": "Your Algolia API key with the necessary permissions to make the request.\nPermissions are controlled through access control lists (ACL) and access restrictions.\nThe required ACL to make a request is listed in each endpoint's reference.\n"
+      }
+    }
+  }
+}

@@ -37,6 +37,9 @@ const DEFAULT_ALLOW_TOOLS = [
   "retrieveMetricsRegistry",
   "retrieveMetricsDaily",
   "retrieveApplicationMetricsHourly",
+  // Collections
+  "listCollections",
+  "getCollection",
 ];
 const ALLOW_TOOLS_OPTIONS_TUPLE = [
   "-t, --allow-tools <tools>",

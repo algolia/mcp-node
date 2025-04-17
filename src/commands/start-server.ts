@@ -23,6 +23,7 @@ import {
   SearchSpec,
   IngestionSpec,
   UsageSpec,
+  CollectionsSpec,
 } from "../openApi.ts";
 import { type CliFilteringOptions, getToolFilter, isToolAllowed } from "../toolFilters.ts";
 
@@ -138,6 +139,15 @@ export async function startServer(opts: StartServerOptions) {
           return request;
         },
       ],
+    });
+
+    // Collections API Tools
+
+    registerOpenApiTools({
+      server,
+      dashboardApi,
+      openApiSpec: CollectionsSpec,
+      toolFilter,
     });
 
     const transport = new StdioServerTransport();
