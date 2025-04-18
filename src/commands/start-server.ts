@@ -13,6 +13,7 @@ import {
   operationId as GetApplicationsOperationId,
 } from "../tools/registerGetApplications.ts";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import type { ProcessCallbackParameters, ProcessParameters } from "../tools/registerOpenApi.ts";
 import { registerOpenApiTools } from "../tools/registerOpenApi.ts";
 import { CONFIG } from "../config.ts";
 import {
@@ -28,26 +29,22 @@ import {
 } from "../openApi.ts";
 import { type CliFilteringOptions, getToolFilter, isToolAllowed } from "../toolFilters.ts";
 
-export type StartServerOptions = CliFilteringOptions;
+export type StartServerOptions = CliFilteringOptions & {
+  applicationId?: string;
+  apiKey?: string;
+};
 
 export async function startServer(opts: StartServerOptions) {
   try {
-    const appState = await AppStateManager.load();
-
-    if (!appState.get("accessToken")) {
-      const token = await authenticate();
-
-      await appState.update({
-        accessToken: token.access_token,
-        refreshToken: token.refresh_token,
-      });
+    if (opts.applicationId && !opts.apiKey) {
+      console.error("You need to provide an API key when specifying an application ID");
+      process.exit(1);
+    } else if (opts.apiKey && !opts.applicationId) {
+      console.error("You need to provide an application ID when specifying an API key");
+      process.exit(1);
     }
 
-    const dashboardApi = new DashboardApi({
-      baseUrl: CONFIG.dashboardApiBaseUrl,
-      appState,
-    });
-
+    const toolFilter = getToolFilter(opts);
     const server = new McpServer({
       name: "algolia",
       version: "1.0.0",
@@ -57,68 +54,109 @@ export async function startServer(opts: StartServerOptions) {
       },
     });
 
-    const toolFilter = getToolFilter(opts);
+    const processParameters: ProcessParameters = async (parameters) => {
+      const result = { ...parameters };
 
-    // Dashboard API Tools
-    if (isToolAllowed(GetUserInfoOperationId, toolFilter)) {
-      registerGetUserInfo(server, dashboardApi);
+      // Special case for API key which we don't want the AI to fill in (it will be added internally)
+      delete result.apiKey;
+
+      // If we got it from the options, we don't need it from the AI
+      if (opts.applicationId) {
+        delete result.applicationId;
+      }
+
+      return result;
+    };
+
+    let processCallbackParameters: ProcessCallbackParameters;
+
+    if (opts.applicationId) {
+      processCallbackParameters = async (params, securityKeys) => {
+        const result = { ...params };
+
+        if (securityKeys.has("applicationId")) {
+          result.applicationId = opts.applicationId;
+        }
+
+        if (securityKeys.has("apiKey")) {
+          result.apiKey = opts.apiKey;
+        }
+
+        return result;
+      };
+    } else {
+      const appState = await AppStateManager.load();
+
+      if (!appState.get("accessToken")) {
+        const token = await authenticate();
+
+        await appState.update({
+          accessToken: token.access_token,
+          refreshToken: token.refresh_token,
+        });
+      }
+
+      const dashboardApi = new DashboardApi({
+        baseUrl: CONFIG.dashboardApiBaseUrl,
+        appState,
+      });
+
+      // Dashboard API Tools
+      if (isToolAllowed(GetUserInfoOperationId, toolFilter)) {
+        registerGetUserInfo(server, dashboardApi);
+      }
+
+      if (isToolAllowed(GetApplicationsOperationId, toolFilter)) {
+        registerGetApplications(server, dashboardApi);
+      }
+
+      processCallbackParameters = async (params, securityKeys) => {
+        const result = { ...params };
+
+        if (!params.applicationId && securityKeys.has("applicationId")) {
+          throw new Error("Missing applicationId");
+        }
+
+        if (securityKeys.has("apiKey")) {
+          params.apiKey = await dashboardApi.getApiKey(params.applicationId);
+        }
+
+        return result;
+      };
     }
 
-    if (isToolAllowed(GetApplicationsOperationId, toolFilter)) {
-      registerGetApplications(server, dashboardApi);
+    const openApiSpecs = [
+      SearchSpec,
+      AnalyticsSpec,
+      RecommendSpec,
+      ABTestingSpec,
+      MonitoringSpec,
+      IngestionSpec,
+      CollectionsSpec,
+      QuerySuggestionsSpec,
+    ];
+
+    for (const openApiSpec of openApiSpecs) {
+      await registerOpenApiTools({
+        server,
+        openApiSpec,
+        toolFilter,
+        processParameters,
+        processCallbackParameters,
+      });
     }
 
-    // Search API Tools
-    registerOpenApiTools({
+    await registerOpenApiTools({
       server,
-      dashboardApi,
-      openApiSpec: SearchSpec,
-      toolFilter,
-    });
-
-    // Analytics API Tools
-    registerOpenApiTools({
-      server,
-      dashboardApi,
-      openApiSpec: AnalyticsSpec,
-      toolFilter,
-    });
-
-    // Recommend API Tools
-    registerOpenApiTools({
-      server,
-      dashboardApi,
-      openApiSpec: RecommendSpec,
-      toolFilter,
-    });
-
-    // AB Testing
-    registerOpenApiTools({
-      server,
-      dashboardApi,
-      openApiSpec: ABTestingSpec,
-      toolFilter,
-    });
-
-    // Monitoring API Tools
-    registerOpenApiTools({
-      server,
-      dashboardApi,
-      openApiSpec: MonitoringSpec,
-      toolFilter,
-    });
-
-    // Usage
-    registerOpenApiTools({
-      server,
-      dashboardApi,
       openApiSpec: UsageSpec,
       toolFilter,
+      processParameters,
+      processCallbackParameters,
       requestMiddlewares: [
-        // The Usage API expects `name` parameter as multiple values
-        // rather than comma-separated.
+        // The Usage API expects `name` parameter as multiple values rather than comma-separated.
         async ({ request }) => {
           const url = new URL(request.url);
+
           const nameParams = url.searchParams.get("name");
 
           if (!nameParams) {
@@ -136,50 +174,6 @@ export async function startServer(opts: StartServerOptions) {
           return new Request(url, request.clone());
         },
       ],
-    });
-
-    // Ingestion API Tools
-    registerOpenApiTools({
-      server,
-      dashboardApi,
-      openApiSpec: IngestionSpec,
-      toolFilter,
-      requestMiddlewares: [
-        // Dirty fix for Claud hallucinating regions
-        async ({ request, params }) => {
-          const application = await dashboardApi.getApplication(params.applicationId);
-          const region = application.data.attributes.log_region === "de" ? "eu" : "us";
-
-          const url = new URL(request.url);
-          const regionFromUrl = url.hostname.match(/data\.(.+)\.algolia.com/)?.[0];
-
-          if (regionFromUrl !== region) {
-            console.error("Had to adjust region from", regionFromUrl, "to", region);
-            url.hostname = `data.${region}.algolia.com`;
-            return new Request(url, request.clone());
-          }
-
-          return request;
-        },
-      ],
-    });
-
-    // Collections API Tools
-
-    registerOpenApiTools({
-      server,
-      dashboardApi,
-      openApiSpec: CollectionsSpec,
-      toolFilter,
-    });
-
-    // Query Suggestions API Tools
-
-    registerOpenApiTools({
-      server,
-      dashboardApi,
-      openApiSpec: QuerySuggestionsSpec,
-      toolFilter,
     });
 
     const transport = new StdioServerTransport();

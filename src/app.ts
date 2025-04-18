@@ -59,6 +59,8 @@ program
   .command("start-server", { isDefault: true })
   .description("Starts the Algolia MCP server")
   .option<string[]>(...ALLOW_TOOLS_OPTIONS_TUPLE)
+  .option("--applicationId <applicationId>", "The application ID to scope requests to")
+  .option("--apiKey <apiKey>", "The associated API key to use")
   .action(async (opts: StartServerOptions) => {
     const { startServer } = await import("./commands/start-server.ts");
     await startServer(opts);

@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import type { ZodRawShape } from "zod";
 import { z, type ZodType } from "zod";
 import { type McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { type DashboardApi } from "../DashboardApi.ts";
 import { jsonSchemaToZod } from "../helpers.ts";
 import { isToolAllowed, type ToolFilter } from "../toolFilters.ts";
 import type { Methods, OpenApiSpec, Operation, SecurityScheme } from "../openApi.ts";
@@ -8,15 +9,22 @@ import { CONFIG } from "../config.ts";
 
 export type RequestMiddleware = (opts: {
   request: Request;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   params: Record<string, any>;
 }) => Promise<Request>;
 
+export type ProcessParameters = (parameters: ZodRawShape) => Promise<ZodRawShape>;
+export type ProcessCallbackParameters = (
+  params: Record<string, any>,
+  securityKeys: Set<string>,
+) => Promise<object>;
+
 type OpenApiToolsOptions = {
   server: Pick<McpServer, "tool">;
-  dashboardApi: DashboardApi;
   openApiSpec: OpenApiSpec;
   toolFilter?: ToolFilter;
+  processParameters?: ProcessParameters;
+  processCallbackParameters?: ProcessCallbackParameters;
   requestMiddlewares?: Array<RequestMiddleware>;
 };
 
@@ -40,7 +48,6 @@ function buildSecurityParameters(
   const result: Record<string, ZodType> = {};
 
   for (const key of keys) {
-    // Special case for API key which we don't want the AI to fill in (it will be added internally)
     if (key === "apiKey") continue;
 
     let schema = z.string();
@@ -55,12 +62,15 @@ function buildSecurityParameters(
   return result;
 }
 
+const identity = async <T>(x: T) => x;
+
 export async function registerOpenApiTools({
   server,
-  dashboardApi,
   openApiSpec,
   toolFilter,
   requestMiddlewares,
+  processParameters = identity,
+  processCallbackParameters = identity,
 }: OpenApiToolsOptions) {
   for (const [path, methods] of Object.entries(openApiSpec.paths)) {
     for (const [method, operation] of Object.entries(methods)) {
@@ -73,12 +83,18 @@ export async function registerOpenApiTools({
       );
       const securitySchemes = openApiSpec.components?.securitySchemes ?? {};
 
+      const parameters = await processParameters({
+        ...buildSecurityParameters(securityKeys, securitySchemes),
+        ...buildUrlParameters(openApiSpec.servers),
+        ...buildParametersZodSchema(operation),
+      });
+
       const toolCallback = buildToolCallback({
         path,
         serverBaseUrl: openApiSpec.servers[0].url,
         method: method as Methods,
         operation,
-        dashboardApi,
+        processCallbackParameters,
         requestMiddlewares,
         securityKeys,
         securitySchemes: openApiSpec.components?.securitySchemes ?? {},
@@ -87,11 +103,7 @@ export async function registerOpenApiTools({
       server.tool(
         operation.operationId,
         operation.summary || operation.description || "",
-        {
-          ...buildSecurityParameters(securityKeys, securitySchemes),
-          ...buildUrlParameters(openApiSpec.servers),
-          ...buildParametersZodSchema(operation),
-        },
+        parameters,
         // @ts-expect-error - the types are hard to satisfy when building tools dynamically. Just trust me bro.
         toolCallback,
       );
@@ -106,7 +118,7 @@ type ToolCallbackBuildOptions = {
   operation: Operation;
   securityKeys: Set<string>;
   securitySchemes: Record<string, SecurityScheme>;
-  dashboardApi: DashboardApi;
+  processCallbackParameters: ProcessCallbackParameters;
   requestMiddlewares?: Array<RequestMiddleware>;
 };
 
@@ -115,13 +127,16 @@ function buildToolCallback({
   serverBaseUrl,
   method,
   operation,
-  requestMiddlewares,
   securityKeys,
   securitySchemes,
-  dashboardApi,
+  requestMiddlewares,
+  processCallbackParameters,
 }: ToolCallbackBuildOptions) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return async (params: Record<string, any>) => {
+  return async (rawParams: any) => {
+    const params: Record<string, any> = await processCallbackParameters(
+      rawParams ?? {},
+      securityKeys,
+    );
     const { requestBody } = params;
 
     if (method === "get" && requestBody) {
@@ -160,13 +175,7 @@ function buildToolCallback({
           throw new Error(`Unsupported security scheme type: ${securityScheme.type}`);
         }
 
-        let value: string;
-
-        if (key === "apiKey") {
-          value = await dashboardApi.getApiKey(params.applicationId);
-        } else {
-          value = params[key];
-        }
+        const value: string = params[key];
 
         if (!value) {
           throw new Error(`Missing security parameter: ${key}`);
