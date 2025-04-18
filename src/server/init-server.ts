@@ -12,7 +12,7 @@ import {
 import { registerOpenApiTools } from "../tools/registerOpenApi.ts";
 import {
   ABTestingSpec,
-  AnalyticsSpec,
+  AnalyticsSpec, CollectionsSpec,
   IngestionSpec,
   MonitoringSpec,
   RecommendSpec,
@@ -131,6 +131,14 @@ export async function initMCPServer(opts: StartServerOptions): Promise<McpServer
           return request;
         },
       ],
+    });
+
+    // Collections API Tools
+    registerOpenApiTools({
+      server,
+      dashboardApi,
+      openApiSpec: CollectionsSpec,
+      toolFilter,
     });
 
     return server;
