@@ -2,7 +2,7 @@ import { algoliasearch } from "algoliasearch";
 import z from "zod";
 import type { AppStateManager } from "./appState.ts";
 import { refreshToken } from "./authentication.ts";
-import PackageJson from "../package.json" with { type: "json" };
+import { CONFIG } from "./config.ts";
 
 import type { Acl } from "algoliasearch";
 
@@ -198,7 +198,7 @@ export class DashboardApi {
       Authorization: `Bearer ${this.#options.appState.get("accessToken")}`,
       "Content-Type": "application/json",
       Accept: "application/vnd.api+json",
-      "User-Agent": `algolia-mcp-node/${PackageJson.version}`,
+      "User-Agent": CONFIG.userAgent,
     };
   }
 }
