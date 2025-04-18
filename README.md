@@ -23,7 +23,8 @@ https://github.com/user-attachments/assets/c36a72e0-f790-4b3f-8720-294ab7f5f6eb
 3. **Connect** to Claude Desktop
 4. Start asking questions about your Algolia data!
 
-For step-by-step instructions, follow the [installation guide](#-installation) and [configuration for Claude Desktop](#%EF%B8%8F-configuration).
+> [!NOTE]
+> For step-by-step instructions, follow the [installation guide](#-installation) and [configuration for Claude Desktop](#%EF%B8%8F-configuration).
 
 ## 🚀 Features
 
