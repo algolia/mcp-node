@@ -4,7 +4,7 @@ import { type DashboardApi } from "../DashboardApi.ts";
 import { jsonSchemaToZod } from "../helpers.ts";
 import { isToolAllowed, type ToolFilter } from "../toolFilters.ts";
 import type { Methods, OpenApiSpec, Operation, SecurityScheme } from "../openApi.ts";
-import { CONFIG } from "../config.ts";
+import PackageJson from '../../package.json' with { type: "json" };
 
 export type RequestMiddleware = (opts: {
   request: Request;
@@ -185,7 +185,7 @@ function buildToolCallback({
       }
     }
 
-    request.headers.set("User-Agent", CONFIG.userAgent);
+    request.headers.append("User-Agent", `algolia-mcp-node/${PackageJson.version}`);
 
     if (requestMiddlewares?.length) {
       for (const middleware of requestMiddlewares) {
