@@ -88,7 +88,6 @@ Here are some example prompts to get you started:
    xattr -r -d com.apple.quarantine <path_to_executable>
    ```
    > **Note:** This step is necessary as the executable is not signed with an Apple Developer account. If you prefer, you can build from source instead.
-
 4. Run the authentication command:
    ```sh
    <path_to_executable> authenticate
