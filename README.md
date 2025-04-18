@@ -1,95 +1,126 @@
-# Algolia NodeJS MCP implementation
+# 🔍 Algolia Node.js MCP
 
-https://github.com/user-attachments/assets/c36a72e0-f790-4b3f-8720-294ab7f5f6eb
+![Algolia Node.js MCP Demo](https://github.com/user-attachments/assets/c36a72e0-f790-4b3f-8720-294ab7f5f6eb)
 
-- [Algolia NodeJS MCP implementation](#algolia-nodejs-mcp-implementation)
-  - [Running the MCP Server (Mac Only)](#running-the-mcp-server-mac-only)
-  - [What can I ask for?](#what-can-i-ask-for)
-    - [Account](#account)
-    - [Apps](#apps)
-    - [Search](#search)
-    - [AB Testing](#ab-testing)
-    - [Analytics](#analytics)
-    - [Monitoring](#monitoring)
-  - [CLI options](#cli-options)
-    - [List available commands](#list-available-commands)
-    - [Server options](#server-options)
-  - [Setup dev environment](#setup-dev-environment)
-  - [Testing and debugging](#testing-and-debugging)
+> Connect Claude Desktop to your Algolia data using the Model Context Protocol (MCP)
 
-## Running the MCP Server (Mac Only)
+<p align="center">
+  <a href="#-quick-start">Quick Start</a> •
+  <a href="#-features">Features</a> •
+  <a href="#-usage-examples">Usage Examples</a> •
+  <a href="#-installation">Installation</a> •
+  <a href="#%EF%B8%8F-configuration">Configuration</a> •
+  <a href="#-development">Development</a> •
+  <a href="#-troubleshooting">Troubleshooting</a> •
+  <a href="#-contributing">Contributing</a> •
+  <a href="#-license">License</a>
+</p>
 
-1. Download the latest version of the Algolia MCP server at https://github.com/algolia/mcp-node/releases
+## ✨ Quick Start
 
-2. Extract the Zip file
+1. **Download** the latest release from our [GitHub Releases](https://github.com/algolia/mcp-node/releases)
+2. **Authenticate** with your Algolia account
+3. **Connect** to Claude Desktop
+4. Start asking questions about your Algolia data!
 
-3. From a terminal, run `xattr -r -d com.apple.quarantine <path_to_executable>`
+For step-by-step instructions, follow the [installation guide](#-installation) and [configuration for Claude Desktop](#%EF%B8%8F-configuration).
 
-> [!IMPORTANT]
-> Why do you need to run this command?
-> This executable is not signed because I don't have a payed Apple Developer Account.
-> This means that macOS will "quarantine" it by default when it is downloaded from the internet.
-> The command remove the quarantine, allowing you to run the program. If you don't trust the build,
-> you can always build it yourself from source with `npm run build -- --outfile dist/algolia-mcp` (see development environment setup below) 😄.
+## 🚀 Features
 
-4. Run <path_to_executable> authenticate. This will open a tab in your browser inviting you to authenticate with
-   the Algolia Dashboard.
+Algolia Node.js MCP enables natural language interactions with your Algolia data through Claude Desktop. This implementation allows you to:
 
-5. Configure Claude Desktop
+- **Search and manipulate** indices with natural language
+- **Analyze** search metrics and performance
+- **Monitor** application status and incidents
+- **Visualize** your data with AI-generated charts and graphs
+- **Integrate** seamlessly with Claude Desktop through the Model Context Protocol
 
-> [!TIP]
-> You can refer to the official documenation here https://modelcontextprotocol.io/quickstart/user
+## 🔮 Usage Examples
 
-```json
-{
-  "mcpServers": {
-    "algolia-mcp": {
-      "command": "<path_to_executable>"
-    }
-  }
-}
+Here are some example prompts to get you started:
+
+### Account Management
+```
+"What is the email address associated with my Algolia account?"
+"How many API keys do I have in my account?"
 ```
 
-6. Start Claude Desktop
+### Applications
+```
+"List all my Algolia apps and their creation dates."
+"What indices are in my 'E-commerce' application?"
+"Show me the configuration for my 'products' index."
+```
 
-## What can I ask for?
+### Search & Indexing
+```
+"Search my 'products' index for Nike shoes under $100."
+"Add these 10 books to my 'library' index using their ISBNs as objectIDs."
+"How many records do I have in my 'customers' index?"
+```
 
-Algolia Node MCP lets you interact with your Algolia apps and indices. Here are some example prompts to get you started:
+### Analytics & Insights
+```
+"Generate a chart showing my search volume for the past month."
+"What's the no-results rate for my 'products' index in the EU region? Generate a graph using React and Recharts."
+"Show me the top 10 searches with no results from last week."
+```
 
-### Account
+### Monitoring & Performance
+```
+"Are there any ongoing incidents at Algolia?"
+"What's the current latency for my US application?"
+"Show me a visualization of my API usage over the past week."
+```
 
-- "What is the email address associated to my account?"
+> [!TIP]
+> Try providing your specific application and index in your initial prompt to avoid unnecessary back and forth.
 
-### Apps
+## 📦 Installation
 
-- "List all my apps Algolia apps."
-- "List all the apps that I own."
-- "What's the ID for app Latency?"
+### macOS
 
-### Search
+1. Download the latest release from [GitHub Releases](https://github.com/algolia/mcp-node/releases)
+2. Extract the `.zip` file
+3. From your terminal, remove quarantine flag to allow execution:
+   ```sh
+   xattr -r -d com.apple.quarantine <path_to_executable>
+   ```
+   > **Note:** This step is necessary as the executable is not signed with an Apple Developer account. If you prefer, you can build from source instead.
 
-- "Search all items in the products index of app Latency where brand = 'Nike' and price < 100."
-- "Retrieve the top 10 best tech books and save them in the books index of app Latency with their ISBN at the objectID."
+4. Run the authentication command:
+   ```sh
+   <path_to_executable> authenticate
+   ```
+   This will open your browser to authenticate with the Algolia Dashboard.
 
-### AB Testing
+### Windows & Linux
 
-- "Do I have any AB Tests currently running on application <application_id>?"
+*Coming soon.*
 
-### Analytics
+## ⚙️ Configuration
 
-- "I have an index named <index_name> on application <application_id>, can you generate a graph for no results rate in DE region over the past month? Please use react and recharts."
+### Claude Desktop Setup
 
-### Monitoring
+1. Open Claude Desktop settings
+2. Add the following to your configuration:
+   ```json
+   {
+     "mcpServers": {
+       "algolia-mcp": {
+         "command": "<path_to_executable>"
+       }
+     }
+   }
+   ```
+3. Restart Claude Desktop
 
-- "Are there any incidents going on at Algolia currently?"
+> [!TIP]
+> You can refer to the [official documentation](https://modelcontextprotocol.io/quickstart/user) for Claude Desktop.
 
-### Usage
+### CLI Options
 
-- "I have an Algolia application with id <application_id>. Can you show me a bar chart of my records usage over the past week?"
-
-## CLI options
-
-### List available commands
+#### Available Commands
 
 ```sh
 Usage: algolia-mcp [options] [command]
@@ -105,7 +136,7 @@ Commands:
   help [command]          display help for command
 ```
 
-### Server options
+#### Server Options
 
 ```sh
 Usage: algolia-mcp start-server [options]
@@ -118,45 +149,87 @@ Options:
   -h, --help                 display help for command
 ```
 
-## Setup dev environment
+## 🛠 Development
 
-You need at least Node 22
+### Requirements
+
+- Node.js 22 or higher
+- npm
+
+### Setup Development Environment
+
+1. Clone the repository:
+   ```sh
+   git clone https://github.com/algolia/mcp-node
+   cd mcp-node
+   npm install
+   ```
+
+2. Configure Claude Desktop for development:
+   ```json
+   {
+     "mcpServers": {
+       "algolia-mcp": {
+         "command": "<PATH_TO_BIN>/node",
+         "args": [
+           "--experimental-strip-types",
+           "--no-warnings=ExperimentalWarning",
+           "<PATH_TO_PROJECT>/src/app.ts"
+         ]
+       }
+     }
+   }
+   ```
+
+> **Note:** You'll need to restart Claude Desktop after making code changes.
+
+### Build
 
 ```sh
-git clone https://github.com/algolia/mcp-node
-cd mcp-node
-npm i
+npm run build -- --outfile dist/algolia-mcp
 ```
 
-And then you'll need to configure Claude Desktop like so:
+### Testing and Debugging
 
-```json
-{
-  "mcpServers": {
-    "algolia-mcp": {
-      "command": "<PATH_TO_BIN>/node",
-      "args": [
-        "--experimental-strip-types",
-        "--no-warnings=ExperimentalWarning",
-        "<PATH_TO_PROJECT>/src/app.ts"
-      ]
-    }
-  }
-}
-```
+Use the [MCP Inspector](https://modelcontextprotocol.io/docs/tools/inspector) for testing and debugging:
 
-> [!TIP]
-> You'll need to restart Claude Desktop every time you make a modification.
+1. Run the debug script:
+   ```sh
+   cd mcp-node
+   npm run debug
+   ```
 
-## Testing and debugging
+2. Open http://127.0.0.1:6274/ in your browser
+3. Click **Connect** to start the server
+4. Send test requests through the inspector interface
 
-You can test and debug tools using the [MCP Inspector](https://modelcontextprotocol.io/docs/tools/inspector).
+## 🔧 Troubleshooting
 
-Navigate to the respository and run the `debug` script:
+### Common Issues
 
-```sh
-cd path/to/mcp-node
-npm run debug
-```
+- **"App not responding" error:** Ensure you've removed the quarantine attribute on macOS
+- **Authentication failures:** Try logging out and authenticating again
+- **Claude can't access tools:** Verify your MCP configuration in Claude Desktop settings
 
-Then go to http://127.0.0.1:6274/ and click **Connect** to start the server.
+### Logs and Diagnostics
+
+Log files are stored in:
+- macOS: `~/Library/Logs/algolia-mcp/`
+- Windows: `%APPDATA%\algolia-mcp\logs\`
+- Linux: `~/.config/algolia-mcp/logs/`
+
+## 👥 Contributing
+
+We welcome contributions to Algolia Node.js MCP! Here's how you can help:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a pull request
+
+---
+
+<p align="center">
+  Made with ❤️ by Algolia
+</p>
