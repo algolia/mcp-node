@@ -44,6 +44,7 @@ export async function startServer(opts: StartServerOptions) {
 
     const dashboardApi = new DashboardApi({
       baseUrl: CONFIG.dashboardApiBaseUrl,
+      userAgent: CONFIG.userAgent,
       appState,
     });
 

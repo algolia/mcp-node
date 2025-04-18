@@ -9,4 +9,5 @@ export const CONFIG = {
   tokenUrl: `https://dashboard.algolia.com/oauth/token`,
   // Dashboard API
   dashboardApiBaseUrl: "https://api.dashboard.algolia.com",
+  userAgent: "algolia-mcp-node/0.0.3",
 };

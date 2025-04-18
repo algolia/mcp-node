@@ -4,6 +4,7 @@ import { type DashboardApi } from "../DashboardApi.ts";
 import { jsonSchemaToZod } from "../helpers.ts";
 import { isToolAllowed, type ToolFilter } from "../toolFilters.ts";
 import type { Methods, OpenApiSpec, Operation, SecurityScheme } from "../openApi.ts";
+import { CONFIG } from "../config.ts";
 
 export type RequestMiddleware = (opts: {
   request: Request;
@@ -183,6 +184,8 @@ function buildToolCallback({
         }
       }
     }
+
+    request.headers.set("User-Agent", CONFIG.userAgent);
 
     if (requestMiddlewares?.length) {
       for (const middleware of requestMiddlewares) {

@@ -8,6 +8,7 @@ import type { Acl } from "algoliasearch";
 export type DashboardApiOptions = {
   baseUrl: string;
   appState: AppStateManager;
+  userAgent: string;
 };
 
 const User = z.object({
@@ -197,6 +198,7 @@ export class DashboardApi {
       Authorization: `Bearer ${this.#options.appState.get("accessToken")}`,
       "Content-Type": "application/json",
       Accept: "application/vnd.api+json",
+      "User-Agent": "algolia-mcp-node/0.0.3",
     };
   }
 }
