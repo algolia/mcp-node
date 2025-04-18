@@ -123,6 +123,23 @@ Here are some example prompts to get you started:
 > [!TIP]
 > You can refer to the [official documentation](https://modelcontextprotocol.io/quickstart/user) for Claude Desktop.
 
+#### SSE Server specific configuration
+To run the SSE version, as Claude Desktop doesn't natively support it yet, you'll have to use a gateway:
+```json
+{
+  "mcpServers": {
+    "algolia-mcp": {
+      "command": "<PATH_TO_BIN>/npx",
+      "args": [
+        "-y",
+        "mcp-remote",
+        "http://localhost:4243/sse"
+      ]
+    }
+  }
+}
+```
+
 ### CLI Options
 
 #### Available Commands
@@ -131,14 +148,15 @@ Here are some example prompts to get you started:
 Usage: algolia-mcp [options] [command]
 
 Options:
-  -h, --help              display help for command
+  -h, --help                  Display help for command
 
 Commands:
-  start-server [options]  Starts the Algolia MCP server
-  authenticate            Authenticate with Algolia
-  logout                  Remove all stored credentials
-  list-tools              List all available tools
-  help [command]          display help for command
+  start-server [options]      Starts the Algolia MCP server
+  start-sse-server [options]  Starts the Algolia MCP SSE server
+  authenticate                Authenticate with Algolia
+  logout                      Remove all stored credentials
+  list-tools                  List all available tools
+  help [command]              Display help for command
 ```
 
 #### Server Options
