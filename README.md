@@ -1,7 +1,5 @@
 # 🔍 Algolia Node.js MCP
 
-https://github.com/user-attachments/assets/c36a72e0-f790-4b3f-8720-294ab7f5f6eb
-
 > Connect Claude Desktop to your Algolia data using the Model Context Protocol (MCP)
 
 <p align="center">
@@ -15,6 +13,8 @@ https://github.com/user-attachments/assets/c36a72e0-f790-4b3f-8720-294ab7f5f6eb
   <a href="#-contributing">Contributing</a> •
   <a href="#-license">License</a>
 </p>
+
+https://github.com/user-attachments/assets/c36a72e0-f790-4b3f-8720-294ab7f5f6eb
 
 ## ✨ Quick Start
 
