@@ -24,6 +24,7 @@ import {
   IngestionSpec,
   UsageSpec,
   CollectionsSpec,
+  QuerySuggestionsSpec,
 } from "../openApi.ts";
 import { type CliFilteringOptions, getToolFilter, isToolAllowed } from "../toolFilters.ts";
 
@@ -147,6 +148,15 @@ export async function startServer(opts: StartServerOptions) {
       server,
       dashboardApi,
       openApiSpec: CollectionsSpec,
+      toolFilter,
+    });
+
+    // Query Suggestions API Tools
+
+    registerOpenApiTools({
+      server,
+      dashboardApi,
+      openApiSpec: QuerySuggestionsSpec,
       toolFilter,
     });
 
