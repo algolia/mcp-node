@@ -4,22 +4,35 @@ import { authenticate } from "../authentication.ts";
 import { DashboardApi } from "../DashboardApi.ts";
 import { CONFIG } from "../config.ts";
 import { getToolFilter, isToolAllowed } from "../toolFilters.ts";
-import { operationId as GetUserInfoOperationId, registerGetUserInfo } from "../tools/registerGetUserInfo.ts";
+import {
+  operationId as GetUserInfoOperationId,
+  registerGetUserInfo,
+} from "../tools/registerGetUserInfo.ts";
 import {
   operationId as GetApplicationsOperationId,
-  registerGetApplications
+  registerGetApplications,
 } from "../tools/registerGetApplications.ts";
 import { registerOpenApiTools } from "../tools/registerOpenApi.ts";
 import {
   ABTestingSpec,
-  AnalyticsSpec, CollectionsSpec,
+  AnalyticsSpec,
+  CollectionsSpec,
   IngestionSpec,
   MonitoringSpec,
+  QuerySuggestionsSpec,
   RecommendSpec,
   SearchSpec,
-  UsageSpec
+  UsageSpec,
 } from "../openApi.ts";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import {
+  operationId as SetAttributesForFacetingOperationId,
+  registerSetAttributesForFaceting,
+} from "../tools/registerSetAttributesForFaceting.ts";
+import {
+  operationId as SetCustomRankingOperationId,
+  registerSetCustomRanking,
+} from "../tools/registerSetCustomRanking.ts";
 
 export async function initMCPServer(opts: StartServerOptions): Promise<McpServer> {
   try {
@@ -41,7 +54,7 @@ export async function initMCPServer(opts: StartServerOptions): Promise<McpServer
 
     const server = new McpServer({
       name: "algolia",
-      version: "1.0.0",
+      version: CONFIG.version,
       capabilities: {
         resources: {},
         tools: {},
@@ -105,6 +118,28 @@ export async function initMCPServer(opts: StartServerOptions): Promise<McpServer
       dashboardApi,
       openApiSpec: UsageSpec,
       toolFilter,
+      requestMiddlewares: [
+        // The Usage API expects `name` parameter as multiple values
+        // rather than comma-separated.
+        async ({ request }) => {
+          const url = new URL(request.url);
+          const nameParams = url.searchParams.get("name");
+
+          if (!nameParams) {
+            return new Request(url, request.clone());
+          }
+
+          const nameValues = nameParams.split(",");
+
+          url.searchParams.delete("name");
+
+          nameValues.forEach((value) => {
+            url.searchParams.append("name", value);
+          });
+
+          return new Request(url, request.clone());
+        },
+      ],
     });
 
     // Ingestion API Tools
@@ -140,6 +175,23 @@ export async function initMCPServer(opts: StartServerOptions): Promise<McpServer
       openApiSpec: CollectionsSpec,
       toolFilter,
     });
+
+    // Query Suggestions API Tools
+    registerOpenApiTools({
+      server,
+      dashboardApi,
+      openApiSpec: QuerySuggestionsSpec,
+      toolFilter,
+    });
+
+    // Custom settings Tools
+    if (isToolAllowed(SetAttributesForFacetingOperationId, toolFilter)) {
+      registerSetAttributesForFaceting(server, dashboardApi);
+    }
+
+    if (isToolAllowed(SetCustomRankingOperationId, toolFilter)) {
+      registerSetCustomRanking(server, dashboardApi);
+    }
 
     return server;
   } catch (err) {
