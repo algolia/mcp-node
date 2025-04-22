@@ -43,35 +43,33 @@ Here are some example prompts to get you started:
 ### Account Management
 ```
 "What is the email address associated with my Algolia account?"
-"How many API keys do I have in my account?"
 ```
 
 ### Applications
 ```
-"List all my Algolia apps and their creation dates."
-"What indices are in my 'E-commerce' application?"
+"List all my Algolia apps."
+"List all the indices are in my 'e-commerce' application and format them into a table sorted by entries."
 "Show me the configuration for my 'products' index."
 ```
 
 ### Search & Indexing
 ```
 "Search my 'products' index for Nike shoes under $100."
-"Add these 10 books to my 'library' index using their ISBNs as objectIDs."
+"Add the top 10 programming books to my 'library' index using their ISBNs as objectIDs."
 "How many records do I have in my 'customers' index?"
 ```
 
 ### Analytics & Insights
 ```
-"Generate a chart showing my search volume for the past month."
-"What's the no-results rate for my 'products' index in the EU region? Generate a graph using React and Recharts."
-"Show me the top 10 searches with no results from last week."
+"What's the no-results rate for my 'products' index in the DE region? Generate a graph using React and Recharts."
+"Show me the top 10 searches with no results in the DE region from last week."
 ```
 
 ### Monitoring & Performance
 ```
 "Are there any ongoing incidents at Algolia?"
-"What's the current latency for my US application?"
-"Show me a visualization of my API usage over the past week."
+"What's the current latency for my 'e-commerce' index?"
+"Show me a visualization of my daily account usage for the past month."
 ```
 
 > [!TIP]
