@@ -2,13 +2,13 @@ import { algoliasearch } from "algoliasearch";
 import z from "zod";
 import type { AppStateManager } from "./appState.ts";
 import { refreshToken } from "./authentication.ts";
+import { CONFIG } from "./config.ts";
 
 import type { Acl } from "algoliasearch";
 
 export type DashboardApiOptions = {
   baseUrl: string;
   appState: AppStateManager;
-  userAgent: string;
 };
 
 const User = z.object({
@@ -198,7 +198,7 @@ export class DashboardApi {
       Authorization: `Bearer ${this.#options.appState.get("accessToken")}`,
       "Content-Type": "application/json",
       Accept: "application/vnd.api+json",
-      "User-Agent": "algolia-mcp-node/0.0.3",
+      "User-Agent": CONFIG.userAgent,
     };
   }
 }

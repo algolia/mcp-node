@@ -102,7 +102,7 @@
         }
       }
     },
-    "/2/metrics/hourly/applications/:application": {
+    "/2/metrics/hourly": {
       "get": {
         "summary": "Returns a list of billing metrics per hour for the specified application",
         "operationId": "retrieveApplicationMetricsHourly",
@@ -251,10 +251,7 @@
       },
       "DailyEntry": {
         "type": "object",
-        "required": [
-          "date",
-          "values"
-        ],
+        "required": ["date", "values"],
         "properties": {
           "date": {
             "type": "string",
@@ -294,10 +291,7 @@
       },
       "HourlyEntry": {
         "type": "object",
-        "required": [
-          "date",
-          "values"
-        ],
+        "required": ["date", "values"],
         "properties": {
           "time": {
             "type": "string",

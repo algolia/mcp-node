@@ -40,6 +40,13 @@ const DEFAULT_ALLOW_TOOLS = [
   // Collections
   "listCollections",
   "getCollection",
+  // Query Suggestions
+  "listQuerySuggestionsConfigs",
+  "getQuerySuggestionsConfig",
+  "createQuerySuggestionsConfig",
+  "updateQuerySuggestionsConfig",
+  "getQuerySuggestionConfigStatus",
+  "getQuerySuggestionLogFile",
 ];
 const ALLOW_TOOLS_OPTIONS_TUPLE = [
   "-t, --allow-tools <tools>",

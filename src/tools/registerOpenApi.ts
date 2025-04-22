@@ -185,7 +185,7 @@ function buildToolCallback({
       }
     }
 
-    request.headers.set("User-Agent", CONFIG.userAgent);
+    request.headers.append("User-Agent", CONFIG.userAgent);
 
     if (requestMiddlewares?.length) {
       for (const middleware of requestMiddlewares) {

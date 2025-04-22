@@ -1,6 +1,6 @@
 {
   "name": "algolia-mcp",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "main": "index.js",
   "scripts": {
     "start": "node --experimental-strip-types --no-warnings=ExperimentalWarnings src/app.ts",

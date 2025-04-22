@@ -1,3 +1,5 @@
+import PackageJson from "../package.json" with { type: "json" };
+
 const port = process.env.PORT ? parseInt(process.env.PORT) : 4242;
 
 export const CONFIG = {
@@ -9,5 +11,5 @@ export const CONFIG = {
   tokenUrl: `https://dashboard.algolia.com/oauth/token`,
   // Dashboard API
   dashboardApiBaseUrl: "https://api.dashboard.algolia.com",
-  userAgent: "algolia-mcp-node/0.0.3",
+  userAgent: `algolia-mcp-node/${PackageJson.version}`,
 };
