@@ -3,6 +3,7 @@ import cors from "cors";
 import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import type { StartServerOptions } from "../server/types.ts";
 import { initMCPServer } from "../server/init-server.ts";
+import { CONFIG } from "../config.ts";
 
 export async function startSseServer(opts: StartServerOptions) {
   try {
@@ -19,10 +20,10 @@ export async function startSseServer(opts: StartServerOptions) {
     const connections = new Map();
 
     // Health check endpoint
-    app.get("/health", (req, res) => {
+    app.get("/health", (_, res) => {
       res.status(200).json({
         status: "ok",
-        version: "1.0.0",
+        version: CONFIG.version,
         uptime: process.uptime(),
         timestamp: new Date().toISOString(),
         connections: connections.size,
