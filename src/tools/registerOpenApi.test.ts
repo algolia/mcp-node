@@ -1,7 +1,6 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { http, HttpResponse } from "msw";
 import type { ToolFilter } from "../toolFilters.ts";
-import type { DashboardApi } from "../DashboardApi.ts";
 import { SearchSpec } from "../openApi.ts";
 import { registerOpenApiTools } from "./registerOpenApi.ts";
 import { setupServer } from "msw/node";
@@ -19,14 +18,11 @@ describe("registerOpenApiTools", () => {
     };
 
     const serverMock = { tool: vi.fn() };
-    const dashboardApiMock = {
-      getApiKey: vi.fn().mockResolvedValue("apiKey"),
-    };
 
-    registerOpenApiTools({
+    await registerOpenApiTools({
       server: serverMock,
-      dashboardApi: dashboardApiMock as unknown as DashboardApi,
       openApiSpec: SearchSpec,
+      processCallbackParameters: async (params) => ({ ...params, apiKey: "apiKey" }),
       toolFilter,
     });
 
