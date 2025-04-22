@@ -114,6 +114,28 @@ export async function startServer(opts: StartServerOptions) {
       dashboardApi,
       openApiSpec: UsageSpec,
       toolFilter,
+      requestMiddlewares: [
+        // The Usage API expects `name` parameter as multiple values
+        // rather than comma-separated.
+        async ({ request }) => {
+          const url = new URL(request.url);
+          const nameParams = url.searchParams.get("name");
+
+          if (!nameParams) {
+            return new Request(url, request.clone());
+          }
+
+          const nameValues = nameParams.split(",");
+
+          url.searchParams.delete("name");
+
+          nameValues.forEach((value) => {
+            url.searchParams.append("name", value);
+          });
+
+          return new Request(url, request.clone());
+        },
+      ],
     });
 
     // Ingestion API Tools
