@@ -47,6 +47,9 @@ const DEFAULT_ALLOW_TOOLS = [
   "updateQuerySuggestionsConfig",
   "getQuerySuggestionConfigStatus",
   "getQuerySuggestionLogFile",
+  // Custom settings
+  "setAttributesForFaceting",
+  "setCustomRanking",
 ];
 const ALLOW_TOOLS_OPTIONS_TUPLE = [
   "-t, --allow-tools <tools>",

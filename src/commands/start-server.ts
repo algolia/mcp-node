@@ -5,12 +5,12 @@ import { authenticate } from "../authentication.ts";
 import { AppStateManager } from "../appState.ts";
 import { DashboardApi } from "../DashboardApi.ts";
 import {
-  registerGetUserInfo,
   operationId as GetUserInfoOperationId,
+  registerGetUserInfo,
 } from "../tools/registerGetUserInfo.ts";
 import {
-  registerGetApplications,
   operationId as GetApplicationsOperationId,
+  registerGetApplications,
 } from "../tools/registerGetApplications.ts";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { registerOpenApiTools } from "../tools/registerOpenApi.ts";
@@ -18,15 +18,23 @@ import { CONFIG } from "../config.ts";
 import {
   ABTestingSpec,
   AnalyticsSpec,
+  CollectionsSpec,
+  IngestionSpec,
   MonitoringSpec,
+  QuerySuggestionsSpec,
   RecommendSpec,
   SearchSpec,
-  IngestionSpec,
   UsageSpec,
-  CollectionsSpec,
-  QuerySuggestionsSpec,
 } from "../openApi.ts";
 import { type CliFilteringOptions, getToolFilter, isToolAllowed } from "../toolFilters.ts";
+import {
+  operationId as SetAttributesForFacetingOperationId,
+  registerSetAttributesForFaceting,
+} from "../tools/registerSetAttributesForFaceting.ts";
+import {
+  registerSetCustomRanking,
+  operationId as SetCustomRankingOperationId
+} from "../tools/registerSetCustomRanking.js";
 
 export type StartServerOptions = CliFilteringOptions;
 
@@ -165,7 +173,6 @@ export async function startServer(opts: StartServerOptions) {
     });
 
     // Collections API Tools
-
     registerOpenApiTools({
       server,
       dashboardApi,
@@ -174,13 +181,21 @@ export async function startServer(opts: StartServerOptions) {
     });
 
     // Query Suggestions API Tools
-
     registerOpenApiTools({
       server,
       dashboardApi,
       openApiSpec: QuerySuggestionsSpec,
       toolFilter,
     });
+
+    // Custom settings Tools
+    if (isToolAllowed(SetAttributesForFacetingOperationId, toolFilter)) {
+      registerSetAttributesForFaceting(server, dashboardApi);
+    }
+
+    if (isToolAllowed(SetCustomRankingOperationId, toolFilter)) {
+      registerSetCustomRanking(server, dashboardApi);
+    }
 
     const transport = new StdioServerTransport();
     await server.connect(transport);
