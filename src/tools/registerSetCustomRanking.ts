@@ -23,8 +23,12 @@ const setCustomRankingSchema = {
           .describe("The direction of the ranking (can be either 'asc' or 'desc')"),
       }),
     )
-    .min(1)
     .describe("The attributes you want to use for custom ranking"),
+  strategy: z
+    .enum(["append", "replace"])
+    .optional()
+    .default("append")
+    .describe("If `append`, the attributes will be added to the existing ones (default strategy to avoid overwriting). If `replace`, the existing attributes will be replaced."),
 };
 
 export function registerSetCustomRanking(server: McpServer, dashboardApi: DashboardApi) {
@@ -32,34 +36,37 @@ export function registerSetCustomRanking(server: McpServer, dashboardApi: Dashbo
     operationId,
     description,
     setCustomRankingSchema,
-    async ({ applicationId, indexName, customRanking }) => {
+    async ({ applicationId, indexName, customRanking, strategy }) => {
       const apiKey = await dashboardApi.getApiKey(applicationId);
-
       const client = algoliasearch(applicationId, apiKey);
+
+      let newCustomRanking: string[] = [];
+
+      if (strategy === "append") {
+        const currentSettings = await client.getSettings({
+          indexName,
+        });
+
+        newCustomRanking = currentSettings.customRanking || [];
+      }
+
+      newCustomRanking = [
+        ...newCustomRanking,
+        ...customRanking.map(({ attribute, direction }) => `${direction}(${attribute})`),
+      ];
 
       const task = await client.setSettings({
         indexName,
         indexSettings: {
-          customRanking: customRanking.map(
-            ({ attribute, direction }) => `${direction}(${attribute})`,
-          ),
+          customRanking: newCustomRanking,
         },
-      });
-
-      await client.waitForTask({ indexName, taskID: task.taskID });
-
-      const currentSettings = await client.getSettings({
-        indexName,
       });
 
       return {
         content: [
           {
             type: "text",
-            text:
-              currentSettings.customRanking != null
-                ? `The current attributes used for custom ranking: ${currentSettings.customRanking.join(", ")}`
-                : "No attributes for faceting found.",
+            text: `The task to set the custom ranking has been created. You can check the status of the task using the \`waitForTask\` method over the task ID '${task.taskID}' and on the index '${indexName}'`,
           },
         ],
       };

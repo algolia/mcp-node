@@ -14,8 +14,12 @@ const attributesForFacetingSchema = {
     .describe("The index name on which you want to set the attributes for faceting"),
   attributesForFaceting: z
     .array(z.string())
-    .min(1)
     .describe("The list of attributes on which you want to be able to apply category filters"),
+  strategy: z
+    .enum(["append", "replace"])
+    .optional()
+    .default("append")
+    .describe("If `append`, the attributes will be added to the existing ones (default strategy to avoid overwriting). If `replace`, the existing attributes will be replaced."),
 };
 
 export function registerSetAttributesForFaceting(server: McpServer, dashboardApi: DashboardApi) {
@@ -23,32 +27,33 @@ export function registerSetAttributesForFaceting(server: McpServer, dashboardApi
     operationId,
     description,
     attributesForFacetingSchema,
-    async ({ applicationId, indexName, attributesForFaceting }) => {
+    async ({ applicationId, indexName, attributesForFaceting, strategy }) => {
       const apiKey = await dashboardApi.getApiKey(applicationId);
-
       const client = algoliasearch(applicationId, apiKey);
+
+      let newAttributes: string[] = [];
+      if (strategy === 'append') {
+        const currentSettings = await client.getSettings({
+          indexName,
+        });
+
+        newAttributes = currentSettings.attributesForFaceting || [];
+      }
+
+      newAttributes = [...newAttributes, ...attributesForFaceting];
 
       const task = await client.setSettings({
         indexName,
         indexSettings: {
-          attributesForFaceting,
+          attributesForFaceting: newAttributes,
         },
-      });
-
-      await client.waitForTask({ indexName, taskID: task.taskID });
-
-      const currentSettings = await client.getSettings({
-        indexName,
       });
 
       return {
         content: [
           {
             type: "text",
-            text:
-              currentSettings.attributesForFaceting != null
-                ? `The current attributes for faceting are: ${currentSettings.attributesForFaceting.join(", ")}`
-                : "No attributes for faceting found.",
+            text: `The task to set the attributes for faceting has been created. You can check the status of the task using the \`waitForTask\` method over the task ID '${task.taskID}' and on the index '${indexName}'`,
           },
         ],
       };
