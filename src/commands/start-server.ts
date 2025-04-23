@@ -34,7 +34,7 @@ import {
 import {
   registerSetCustomRanking,
   operationId as SetCustomRankingOperationId
-} from "../tools/registerSetCustomRanking.js";
+} from "../tools/registerSetCustomRanking.ts";
 
 export type StartServerOptions = CliFilteringOptions;
 
