@@ -226,6 +226,10 @@ We welcome contributions to Algolia Node.js MCP! Here's how you can help:
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a pull request
 
+## License
+
+Algolia Node.js MCP is [MIT licensed](https://github.com/algolia/mcp-node/blob/main/LICENSE).
+
 ---
 
 <p align="center">
