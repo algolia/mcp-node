@@ -1,7 +1,17 @@
 import { operationId as GetUserInfoOperationId } from "../tools/registerGetUserInfo.ts";
 import { operationId as GetApplicationsOperationId } from "../tools/registerGetApplications.ts";
 import { ALL_SPECS, type OpenApiSpec } from "../openApi.ts";
+import type { ToolFilter } from "../toolFilters.ts";
 import { type CliFilteringOptions, getToolFilter, isToolAllowed } from "../toolFilters.ts";
+
+export function getToolIds(toolFilter?: ToolFilter): string[] {
+  const results = [];
+  for (const spec of ALL_SPECS) {
+    const toolIds = extractToolIds(spec).filter((id) => isToolAllowed(id, toolFilter));
+    results.push(...toolIds);
+  }
+  return results;
+}
 
 export type ListToolsOptions = CliFilteringOptions & {
   all: boolean;
