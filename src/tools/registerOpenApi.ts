@@ -194,7 +194,7 @@ function buildToolCallback({
     }
 
     const response = await fetch(request);
-    const data = await response.json();
+    const data = await decodeResponse(response);
 
     return {
       content: [
@@ -205,6 +205,23 @@ function buildToolCallback({
       ],
     };
   };
+}
+
+async function decodeResponse(response: Response) {
+  const text = await response.text();
+
+  try {
+    // Try to parse as regular JSON
+    return JSON.parse(text);
+  } catch {
+    // Fallback: try to parse as JSONLines
+    const lines = text
+      .split("\n")
+      .filter((line) => line.trim() !== "")
+      .map((line) => JSON.parse(line));
+
+    return lines;
+  }
 }
 
 function isJsonString(json: unknown): json is string {
