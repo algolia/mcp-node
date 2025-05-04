@@ -85,6 +85,8 @@ export async function registerOpenApiTools({
         securitySchemes: openApiSpec.components?.securitySchemes ?? {},
       });
 
+      const isReadOnly = Boolean(method === "get" || operation["x-use-read-transporter"]);
+
       server.tool(
         operation.operationId,
         operation.summary || operation.description || "",
@@ -93,6 +95,7 @@ export async function registerOpenApiTools({
           ...buildUrlParameters(openApiSpec.servers),
           ...buildParametersZodSchema(operation),
         },
+        { destructiveHint: !isReadOnly, readOnlyHint: isReadOnly },
         toolCallback,
       );
     }

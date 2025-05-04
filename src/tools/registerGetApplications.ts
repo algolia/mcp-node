@@ -5,7 +5,7 @@ export const operationId = "getApplications";
 export const description = "Gets a paginated list of Algolia applications for the current user";
 
 export function registerGetApplications(server: McpServer, dashboardApi: DashboardApi) {
-  server.tool(operationId, description, async () => {
+  server.tool(operationId, description, { readOnlyHint: true }, async () => {
     const applications = await dashboardApi.getApplications();
 
     return {

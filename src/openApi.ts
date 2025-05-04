@@ -14,6 +14,7 @@ export type Methods = "get" | "post" | "put" | "delete";
 
 export type Operation = {
   "x-helper"?: boolean;
+  "x-use-read-transporter"?: boolean;
   operationId: string;
   summary?: string;
   description?: string;

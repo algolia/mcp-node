@@ -28,7 +28,9 @@ const setCustomRankingSchema = {
     .enum(["append", "replace"])
     .optional()
     .default("append")
-    .describe("If `append`, the attributes will be added to the existing ones (default strategy to avoid overwriting). If `replace`, the existing attributes will be replaced."),
+    .describe(
+      "If `append`, the attributes will be added to the existing ones (default strategy to avoid overwriting). If `replace`, the existing attributes will be replaced.",
+    ),
 };
 
 export function registerSetCustomRanking(server: McpServer, dashboardApi: DashboardApi) {
@@ -36,6 +38,7 @@ export function registerSetCustomRanking(server: McpServer, dashboardApi: Dashbo
     operationId,
     description,
     setCustomRankingSchema,
+    { destructiveHint: true },
     async ({ applicationId, indexName, customRanking, strategy }) => {
       const apiKey = await dashboardApi.getApiKey(applicationId);
       const client = algoliasearch(applicationId, apiKey);

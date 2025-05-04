@@ -5,7 +5,7 @@ export const operationId = "getUserInfo";
 export const description = "Get information about the user in the Algolia system";
 
 export function registerGetUserInfo(server: McpServer, dashboardApi: DashboardApi) {
-  server.tool(operationId, description, async () => {
+  server.tool(operationId, description, { readOnlyHint: true }, async () => {
     const user = await dashboardApi.getUser();
 
     return {

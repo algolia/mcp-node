@@ -14,6 +14,14 @@ export default defineConfig([
       rules: {
         "no-param-reassign": ["error"],
         "@typescript-eslint/consistent-type-imports": "error",
+        "@typescript-eslint/no-unused-vars": [
+          "error",
+          {
+            argsIgnorePattern: "^_",
+            ignoreRestSiblings: true,
+            varsIgnorePattern: "^_",
+          },
+        ],
       },
     },
   ],

@@ -16,7 +16,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.9.0",
+    "@modelcontextprotocol/sdk": "^1.11.0",
     "algoliasearch": "^5.23.4",
     "commander": "^13.1.0",
     "open": "^10.1.0",
