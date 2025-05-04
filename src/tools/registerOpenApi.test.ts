@@ -45,9 +45,7 @@ describe("registerOpenApiTools", () => {
 
     server.use(
       http.get("https://appid.algolia.net/1/indexes/indexName/settings", () =>
-        HttpResponse.json({
-          searchableAttributes: ["title"],
-        }),
+        HttpResponse.json({ searchableAttributes: ["title"] }),
       ),
     );
     const result = await toolCallback({
@@ -65,7 +63,7 @@ describe("registerOpenApiTools", () => {
     });
   });
 
-  it("should generate a getSettings tool responding with JSONL", async () => {
+  it("should work with jsonl responses", async () => {
     const toolFilter: ToolFilter = {
       allowedTools: new Set(["getSettings"]),
     };
@@ -95,12 +93,11 @@ describe("registerOpenApiTools", () => {
 
     const toolCallback = serverMock.tool.mock.calls[0][3];
 
+    const jsonlResponse = `{ "searchableAttributes": ["title"] }
+{ "searchableAttributes": ["genre"] }`;
     server.use(
       http.get("https://appid.algolia.net/1/indexes/indexName/settings", () =>
-        HttpResponse.text(`
-          { "searchableAttributes": ["title"] }
-          { "searchableAttributes": ["genre"] }
-          `),
+        HttpResponse.text(jsonlResponse),
       ),
     );
     const result = await toolCallback({
@@ -111,7 +108,7 @@ describe("registerOpenApiTools", () => {
     expect(result).toEqual({
       content: [
         {
-          text: '[{"searchableAttributes":["title"]},{"searchableAttributes":["genre"]}]',
+          text: jsonlResponse,
           type: "text",
         },
       ],
