@@ -107,6 +107,8 @@ Here are some example prompts to get you started:
 
 ### Claude Desktop Setup
 
+#### Local
+
 1. Open Claude Desktop settings
 2. Add the following to your configuration:
    ```json
@@ -123,8 +125,8 @@ Here are some example prompts to get you started:
 > [!TIP]
 > You can refer to the [official documentation](https://modelcontextprotocol.io/quickstart/user) for Claude Desktop.
 
-#### SSE Server specific configuration
-To run the SSE version, as Claude Desktop doesn't natively support it yet, you'll have to use a gateway:
+#### Remote
+To run an HTTP server, as Claude Desktop doesn't natively support it yet, you'll have to use a gateway:
 ```json
 {
   "mcpServers": {
@@ -133,12 +135,16 @@ To run the SSE version, as Claude Desktop doesn't natively support it yet, you'l
       "args": [
         "-y",
         "mcp-remote",
-        "http://localhost:4243/sse"
+        "http://localhost:4243/mcp"
       ]
     }
   }
 }
 ```
+> [!INFO]
+> Our HTTP server leverages the [Streamable HTTP transport](https://modelcontextprotocol.io/specification/2025-03-26/basic/transports#streamable-http).
+> It is also backward compatible with the [SSE transport](https://modelcontextprotocol.io/docs/concepts/transports#server-sent-events-sse).
+
 
 ### CLI Options
 

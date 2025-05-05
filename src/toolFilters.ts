@@ -1,7 +1,7 @@
 export type CliFilteringOptions = {
   allowTools?: string[];
   denyTools?: string[];
-  transport?: 'stdio' | 'sse';
+  transport?: 'stdio' | 'http';
 };
 
 export type ToolFilter = {
