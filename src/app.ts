@@ -1,6 +1,6 @@
 import { Command } from "commander";
 import { type StartServerOptions } from "./commands/start-server.ts";
-import { type ListToolsOptions } from "./commands/list-tools.ts";
+import { getToolIds, type ListToolsOptions } from "./commands/list-tools.ts";
 
 const program = new Command("algolia-mcp");
 
@@ -53,8 +53,13 @@ const DEFAULT_ALLOW_TOOLS = [
 ];
 const ALLOW_TOOLS_OPTIONS_TUPLE = [
   "-t, --allow-tools <tools>",
-  "Comma separated list of tool ids",
-  (val: string) => val.split(",").map((s) => s.trim()),
+  "Comma separated list of tool ids (or all)",
+  (val: string) => {
+    if (val.trim().toLowerCase() === "all") {
+      return getToolIds();
+    }
+    return val.split(",").map((tool) => tool.trim());
+  },
   DEFAULT_ALLOW_TOOLS,
 ] as const;
 
