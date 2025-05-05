@@ -24,8 +24,16 @@ const APP_STATE_PATH = path.join(STORAGE_PATH, "state.json");
 
 let SINGLETON: AppStateManager | null = null;
 
-export class AppStateManager {
-  #appState: AppState;
+abstract class StateManager {
+  abstract appState: AppState;
+
+  abstract get<K extends keyof AppState>(key: K): AppState[K];
+
+  abstract update(update: Partial<AppState>): Promise<void>;
+}
+
+export class AppStateManager implements StateManager {
+  appState: AppState;
 
   static async load() {
     if (!SINGLETON) {
@@ -52,15 +60,31 @@ export class AppStateManager {
   }
 
   constructor(initialState: AppState) {
-    this.#appState = initialState;
+    this.appState = initialState;
   }
 
   get<K extends keyof AppState>(key: K): AppState[K] {
-    return this.#appState[key];
+    return this.appState[key];
   }
 
   async update(update: Partial<AppState>) {
-    this.#appState = { ...this.#appState, ...update };
-    await fs.writeFile(APP_STATE_PATH, JSON.stringify(this.#appState));
+    this.appState = { ...this.appState, ...update };
+    await fs.writeFile(APP_STATE_PATH, JSON.stringify(this.appState));
+  }
+}
+
+export class InMemoryStateManager implements StateManager {
+  appState: AppState;
+
+  constructor(initialState: AppState) {
+    this.appState = initialState;
+  }
+
+  get<K extends keyof AppState>(key: K): AppState[K] {
+    return this.appState[key];
+  }
+
+  async update(update: Partial<AppState>) {
+    this.appState = { ...this.appState, ...update };
   }
 }

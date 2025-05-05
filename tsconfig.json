@@ -12,6 +12,8 @@
     "noEmit": true,
     "verbatimModuleSyntax": false,
     "noUnusedLocals": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+
+    "types": ["worker-configuration.d.ts", "node"]
   }
 }

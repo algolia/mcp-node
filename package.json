@@ -8,7 +8,11 @@
     "lint": "eslint --ext .ts src",
     "test": "vitest",
     "build": "bun build ./src/app.ts --compile --outfile dist/app",
-    "debug": "mcp-inspector npm start"
+    "debug": "mcp-inspector npm start",
+    "cf:start": "wrangler dev",
+    "cf:dev": "wrangler dev",
+    "cf:deploy": "wrangler deploy",
+    "cf:types": "wrangler types"
   },
   "type": "module",
   "keywords": [],
@@ -16,12 +20,16 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@cloudflare/workers-oauth-provider": "^0.0.5",
     "@modelcontextprotocol/sdk": "^1.11.0",
+    "agents": "^0.0.77",
     "algoliasearch": "^5.23.4",
     "commander": "^13.1.0",
     "cors": "^2.8.5",
     "express": "^5.1.0",
+    "hono": "^4.7.8",
     "open": "^10.1.0",
+    "wrangler": "^4.14.1",
     "zod": "^3.24.2"
   },
   "devDependencies": {
