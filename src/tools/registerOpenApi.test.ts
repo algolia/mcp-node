@@ -2,71 +2,73 @@ import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest
 import { http, HttpResponse } from "msw";
 import type { ToolFilter } from "../toolFilters.ts";
 import type { DashboardApi } from "../DashboardApi.ts";
-import { SearchSpec } from "../openApi.ts";
+import { ALL_SPECS, SearchSpec } from "../openApi.ts";
 import { registerOpenApiTools } from "./registerOpenApi.ts";
 import { setupServer } from "msw/node";
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
-import { ListToolsResultSchema } from "@modelcontextprotocol/sdk/types.js";
+import {
+  CallToolResultSchema,
+  ErrorCode,
+  ListToolsResultSchema,
+} from "@modelcontextprotocol/sdk/types.js";
+import type { InputJsonSchema, ToolDefinition } from "../CustomMcpServer.ts";
+import { CustomMcpServer } from "../CustomMcpServer.ts";
 
-const server = setupServer();
+const mswServer = setupServer();
 
-beforeAll(() => server.listen());
-afterEach(() => server.resetHandlers());
-afterAll(() => server.close());
+beforeAll(() => mswServer.listen());
+afterEach(() => mswServer.resetHandlers());
+afterAll(() => mswServer.close());
 
 describe("registerOpenApiTools", () => {
-  it("should generate a getSettings tool", async () => {
-    const toolFilter: ToolFilter = {
-      allowedTools: new Set(["getSettings"]),
-    };
-
-    const serverMock = { tool: vi.fn() };
-    const dashboardApiMock = {
-      getApiKey: vi.fn().mockResolvedValue("apiKey"),
-    };
-
-    registerOpenApiTools({
-      server: serverMock,
-      dashboardApi: dashboardApiMock as unknown as DashboardApi,
-      openApiSpec: SearchSpec,
-      toolFilter,
-    });
-
-    expect(serverMock.tool).toHaveBeenCalledTimes(1);
-    expect(serverMock.tool).toHaveBeenCalledWith(
-      "getSettings",
-      "Retrieve index settings",
-      expect.objectContaining({
-        applicationId: expect.anything(),
-        indexName: expect.anything(),
-      }),
-      expect.anything(),
-      expect.anything(),
-    );
-
-    const [_name, _description, _schema, _annotations, toolCallback] =
-      serverMock.tool.mock.calls[0];
-
-    server.use(
-      http.get("https://appid.algolia.net/1/indexes/indexName/settings", () =>
+  it("should generate a working getSettings tool", async () => {
+    mswServer.use(
+      http.get("https://simba.algolia.net/1/indexes/indexName/settings", () =>
         HttpResponse.json({ searchableAttributes: ["title"] }),
       ),
     );
-    const result = await toolCallback({
-      applicationId: "appId",
-      indexName: "indexName",
+
+    const server = new CustomMcpServer({ name: "algolia", version: "1.0.0" });
+    const client = new Client({ name: "test client", version: "1.0.0" });
+
+    const dashboardApiMock = {
+      getApiKey: vi.fn().mockResolvedValue("apiKey"),
+    } as unknown as DashboardApi;
+
+    registerOpenApiTools({
+      server,
+      dashboardApi: dashboardApiMock,
+      openApiSpec: SearchSpec,
     });
 
-    expect(result).toEqual({
-      content: [
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    await Promise.all([client.connect(clientTransport), server.connect(serverTransport)]);
+
+    await expect(
+      client.request(
         {
-          text: '{"searchableAttributes":["title"]}',
-          type: "text",
+          method: "tools/call",
+          params: {
+            name: "getSettings",
+            arguments: {
+              applicationId: "SIMBA",
+              indexName: "indexName",
+            },
+          },
         },
-      ],
-    });
+        CallToolResultSchema,
+      ),
+    ).resolves.toMatchInlineSnapshot(`
+      {
+        "content": [
+          {
+            "text": "{"searchableAttributes":["title"]}",
+            "type": "text",
+          },
+        ],
+      }
+    `);
   });
 
   it("should work with jsonl responses", async () => {
@@ -86,20 +88,24 @@ describe("registerOpenApiTools", () => {
       toolFilter,
     });
 
-    const [_name, _description, _schema, _annotations, toolCallback] =
-      serverMock.tool.mock.calls[0];
+    const { cb: toolCallback } = serverMock.tool.mock
+      .calls[0][0] as unknown as ToolDefinition<InputJsonSchema>;
 
     const jsonlResponse = `{ "searchableAttributes": ["title"] }
 { "searchableAttributes": ["genre"] }`;
-    server.use(
+    mswServer.use(
       http.get("https://appid.algolia.net/1/indexes/indexName/settings", () =>
         HttpResponse.text(jsonlResponse),
       ),
     );
-    const result = await toolCallback({
-      applicationId: "appId",
-      indexName: "indexName",
-    });
+    const result = await toolCallback(
+      {
+        applicationId: "appId",
+        indexName: "indexName",
+      },
+      // @ts-expect-error - not mocking the extra parameter
+      {},
+    );
 
     expect(result).toEqual({
       content: [
@@ -112,7 +118,7 @@ describe("registerOpenApiTools", () => {
   });
 
   it("should generate annotations hints", async () => {
-    const server = new McpServer({ name: "algolia", version: "1.0.0" });
+    const server = new CustomMcpServer({ name: "algolia", version: "1.0.0" });
     const client = new Client({ name: "test client", version: "1.0.0" });
 
     registerOpenApiTools({
@@ -144,5 +150,242 @@ describe("registerOpenApiTools", () => {
     // set settings uses the http post method
     expect(setSettingsTool.name).toBe("setSettings");
     expect(setSettingsTool.annotations).toEqual({ destructiveHint: true, readOnlyHint: false });
+  });
+
+  it("should not crash when registering ALL tools", async () => {
+    const server = new CustomMcpServer({ name: "algolia", version: "1.0.0" });
+    const client = new Client({ name: "test client", version: "1.0.0" });
+
+    for (const openApiSpec of ALL_SPECS) {
+      registerOpenApiTools({
+        server,
+        dashboardApi: {} as DashboardApi,
+        openApiSpec,
+      });
+    }
+
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    await Promise.all([client.connect(clientTransport), server.connect(serverTransport)]);
+
+    const { tools } = await client.listTools();
+    expect(tools).toHaveLength(172);
+  });
+
+  it("should allow filtering tools", async () => {
+    const server = new CustomMcpServer({ name: "algolia", version: "1.0.0" });
+    const client = new Client({ name: "test client", version: "1.0.0" });
+
+    const dashboardApiMock = {
+      getApiKey: vi.fn().mockResolvedValue("apiKey"),
+    } as unknown as DashboardApi;
+
+    registerOpenApiTools({
+      server,
+      dashboardApi: dashboardApiMock,
+      openApiSpec: SearchSpec,
+      toolFilter: {
+        allowedTools: new Set(["getSettings"]),
+      },
+    });
+
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    await Promise.all([client.connect(clientTransport), server.connect(serverTransport)]);
+
+    const { tools } = await client.listTools();
+    expect(tools).toHaveLength(1);
+    expect(tools[0].name).toBe("getSettings");
+  });
+
+  describe("tool arguments validation", () => {
+    let client: Client;
+
+    beforeAll(async () => {
+      const server = new CustomMcpServer({ name: "algolia", version: "1.0.0" });
+      client = new Client({ name: "test client", version: "1.0.0" });
+
+      const dashboardApiMock = {
+        getApiKey: vi.fn().mockResolvedValue("someKey"),
+      } as unknown as DashboardApi;
+
+      registerOpenApiTools({
+        server,
+        dashboardApi: dashboardApiMock,
+        openApiSpec: SearchSpec,
+      });
+
+      const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+      await Promise.all([client.connect(clientTransport), server.connect(serverTransport)]);
+    });
+
+    it.each<[operationId: string, description: string, params: object, valid: boolean]>([
+      // Valid params
+      [
+        "searchSingleIndex",
+        "query object",
+        {
+          applicationId: "1234",
+          indexName: "indexName",
+          requestBody: { query: "hello world" },
+        },
+        true,
+      ],
+      [
+        "searchSingleIndex",
+        "query url",
+        {
+          applicationId: "1234",
+          indexName: "indexName",
+          requestBody: { params: "query=hello%20world" },
+        },
+        true,
+      ],
+      [
+        "searchSingleIndex",
+        "complex params",
+        {
+          applicationId: "1234",
+          indexName: "indexName",
+          requestBody: { query: "hello world", attributesToRetrieve: [] },
+        },
+        true,
+      ],
+      [
+        "searchSingleIndex",
+        "facetFilters",
+        {
+          applicationId: "1234",
+          indexName: "indexName",
+          requestBody: {
+            query: "hello world",
+            facetFilters: [
+              ["attribute1:value", "attribute2:value"],
+              "attribute3:value",
+              ["attribute4:value", "attribute5:value"],
+            ],
+          },
+        },
+        true,
+      ],
+      [
+        "saveRules",
+        "simple rule",
+        {
+          applicationId: "1234",
+          indexName: "indexName",
+          requestBody: [
+            {
+              objectID: "1234",
+              condition: {
+                pattern: "hello world",
+                anchor: "end",
+                context: "query",
+              },
+              consequence: {
+                promote: [{ objectID: "objectId1", position: 1 }],
+              },
+            },
+          ],
+        },
+        true,
+      ],
+
+      // Invalid params
+      [
+        "searchSingleIndex",
+        "Invalid application id",
+        {
+          applicationId: 1234,
+          indexName: "indexName",
+          requestBody: { query: "hello world" },
+        },
+        false,
+      ],
+      [
+        "searchSingleIndex",
+        "Missing index name",
+        {
+          applicationId: "1234",
+          requestBody: { query: "hello world" },
+        },
+        false,
+      ],
+      [
+        "searchSingleIndex",
+        "Invalid query parameter",
+        {
+          applicationId: "1234",
+          indexName: "indexName",
+          requestBody: { query: false },
+        },
+        false,
+      ],
+      [
+        "searchSingleIndex",
+        "Extra properties",
+        {
+          applicationId: "1234",
+          indexName: "indexName",
+          requestBody: { iDontExist: true },
+        },
+        false,
+      ],
+      [
+        "searchSingleIndex",
+        "invalid facetFilters",
+        {
+          applicationId: "1234",
+          indexName: "indexName",
+          requestBody: {
+            query: "hello world",
+            facetFilters: [["attribute1:value", 2], "attribute3:value"],
+          },
+        },
+        false,
+      ],
+      [
+        "saveRules",
+        "Invalid rule",
+        {
+          applicationId: "1234",
+          indexName: "indexName",
+          requestBody: [
+            {
+              objectID: "1234",
+              condition: {
+                context: "query",
+              },
+              consequence: {
+                promote: [{ objectID: "objectId1", position: false }],
+              },
+            },
+          ],
+        },
+        false,
+      ],
+    ])(
+      "should validate parameters correctly ($0 - $1)",
+      async (operationId, _desc, params, valid) => {
+        mswServer.use(http.all(/.+/, () => Response.json({})));
+
+        const error = await client
+          .request(
+            {
+              method: "tools/call",
+              params: {
+                name: operationId,
+                arguments: params,
+              },
+            },
+            CallToolResultSchema,
+          )
+          .then(
+            () => undefined,
+            (err) => err,
+          );
+        const expectedErrorCode = valid ? undefined : ErrorCode.InvalidParams;
+
+        expect(error?.code).toBe(expectedErrorCode);
+      },
+    );
   });
 });

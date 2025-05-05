@@ -1,6 +1,5 @@
 #!/usr/bin/env -S node --experimental-strip-types
 
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { authenticate } from "../authentication.ts";
 import { AppStateManager } from "../appState.ts";
 import { DashboardApi } from "../DashboardApi.ts";
@@ -36,6 +35,8 @@ import {
   operationId as SetCustomRankingOperationId,
 } from "../tools/registerSetCustomRanking.ts";
 
+import { CustomMcpServer } from "../CustomMcpServer.ts";
+
 export type StartServerOptions = CliFilteringOptions;
 
 export async function startServer(opts: StartServerOptions) {
@@ -56,7 +57,7 @@ export async function startServer(opts: StartServerOptions) {
       appState,
     });
 
-    const server = new McpServer({
+    const server = new CustomMcpServer({
       name: "algolia",
       version: CONFIG.version,
       capabilities: {

@@ -1218,7 +1218,7 @@
         "tags": ["ingestion"],
         "summary": "Retrieve a task",
         "description": "Retrieves a task by its ID.",
-        "operationId": "getTask",
+        "operationId": "getIngestionTask",
         "x-acl": ["addObject", "deleteIndex", "editSettings"],
         "parameters": [
           {
@@ -3784,7 +3784,6 @@
       },
       "SourceUpdateShopify": {
         "type": "object",
-        "additionalProperties": false,
         "properties": {
           "featureFlags": {
             "type": "object",
@@ -3795,7 +3794,6 @@
       },
       "sourceShopifyBase": {
         "type": "object",
-        "additionalProperties": false,
         "properties": {
           "shopURL": {
             "type": "string",
@@ -3813,7 +3811,8 @@
           {
             "$ref": "#/components/schemas/sourceShopifyBase"
           }
-        ]
+        ],
+        "unevaluatedProperties": false
       },
       "SourceInput": {
         "oneOf": [

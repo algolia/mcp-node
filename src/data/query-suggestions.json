@@ -829,7 +829,6 @@
         "allOf": [
           {
             "type": "object",
-            "additionalProperties": false,
             "properties": {
               "indexName": {
                 "$ref": "#/components/schemas/IndexName"
@@ -839,7 +838,8 @@
           {
             "$ref": "#/components/schemas/Configuration"
           }
-        ]
+        ],
+        "unevaluatedProperties": false
       },
       "ConfigurationResponse": {
         "type": "object",
@@ -859,7 +859,8 @@
           "exclude",
           "languages",
           "sourceIndices"
-        ]
+        ],
+        "unevaluatedProperties": false
       },
       "BaseResponse": {
         "type": "object",

@@ -1289,7 +1289,6 @@
       },
       "abTestsVariant": {
         "type": "object",
-        "additionalProperties": false,
         "properties": {
           "index": {
             "$ref": "#/components/schemas/index"
@@ -1310,7 +1309,6 @@
           "typoTolerance": false,
           "synonyms": false
         },
-        "additionalProperties": false,
         "properties": {
           "customSearchParameters": {
             "type": "object"
@@ -1327,7 +1325,8 @@
           {
             "$ref": "#/components/schemas/customSearchParams"
           }
-        ]
+        ],
+        "unevaluatedProperties": false
       },
       "AddABTestsVariant": {
         "oneOf": [

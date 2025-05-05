@@ -1,20 +1,18 @@
-import { type McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { type DashboardApi } from "../DashboardApi.ts";
+import type { CustomMcpServer } from "../CustomMcpServer.ts";
 
 export const operationId = "getApplications";
 export const description = "Gets a paginated list of Algolia applications for the current user";
 
-export function registerGetApplications(server: McpServer, dashboardApi: DashboardApi) {
-  server.tool(operationId, description, { readOnlyHint: true }, async () => {
-    const applications = await dashboardApi.getApplications();
-
-    return {
-      content: [
-        {
-          type: "text",
-          text: JSON.stringify(applications),
-        },
-      ],
-    };
+export function registerGetApplications(server: CustomMcpServer, dashboardApi: DashboardApi) {
+  server.tool({
+    name: operationId,
+    description,
+    annotations: { readOnlyHint: true },
+    inputSchema: undefined,
+    cb: async () => {
+      const applications = await dashboardApi.getApplications();
+      return JSON.stringify(applications);
+    },
   });
 }

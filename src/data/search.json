@@ -1484,7 +1484,7 @@
               "schema": {
                 "title": "searchSynonymsParams",
                 "type": "object",
-                "additionalProperties": false,
+                "unevaluatedProperties": false,
                 "properties": {
                   "query": {
                     "$ref": "#/components/schemas/query"
@@ -1667,7 +1667,8 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/apiKey"
+                "$ref": "#/components/schemas/apiKey",
+                "unevaluatedProperties": false
               }
             }
           }
@@ -3029,7 +3030,7 @@
     "/1/security/sources/{source}": {
       "delete": {
         "tags": ["search"],
-        "operationId": "deleteSource",
+        "operationId": "deleteSecuritySource",
         "x-acl": ["admin"],
         "description": "Deletes a source from the list of allowed sources.",
         "summary": "Delete a source",
@@ -4196,7 +4197,8 @@
           "params": {
             "$ref": "#/components/schemas/paramsAsString"
           }
-        }
+        },
+        "required": ["params"]
       },
       "query": {
         "type": "string",
@@ -4206,7 +4208,6 @@
       },
       "searchParamsQuery": {
         "type": "object",
-        "additionalProperties": false,
         "properties": {
           "query": {
             "$ref": "#/components/schemas/query"
@@ -4488,7 +4489,6 @@
       },
       "baseSearchParamsWithoutQuery": {
         "type": "object",
-        "additionalProperties": false,
         "properties": {
           "similarQuery": {
             "type": "string",
@@ -5019,7 +5019,6 @@
       },
       "indexSettingsAsSearchParams": {
         "type": "object",
-        "additionalProperties": false,
         "properties": {
           "attributesToRetrieve": {
             "type": "array",
@@ -5295,7 +5294,8 @@
           {
             "$ref": "#/components/schemas/indexSettingsAsSearchParams"
           }
-        ]
+        ],
+        "unevaluatedProperties": false
       },
       "searchParams": {
         "oneOf": [
@@ -5356,7 +5356,6 @@
       },
       "baseSearchResponse": {
         "type": "object",
-        "additionalProperties": true,
         "required": ["processingTimeMS"],
         "properties": {
           "abTestID": {
@@ -5569,7 +5568,6 @@
       },
       "SearchPagination": {
         "type": "object",
-        "additionalProperties": false,
         "properties": {
           "page": {
             "$ref": "#/components/schemas/page"
@@ -5831,7 +5829,6 @@
       },
       "searchHits": {
         "type": "object",
-        "additionalProperties": true,
         "properties": {
           "hits": {
             "type": "array",
@@ -5863,7 +5860,8 @@
           {
             "$ref": "#/components/schemas/searchHits"
           }
-        ]
+        ],
+        "unevaluatedProperties": false
       },
       "indexName": {
         "type": "string",
@@ -5897,7 +5895,8 @@
           {
             "$ref": "#/components/schemas/searchForHitsOptions"
           }
-        ]
+        ],
+        "unevaluatedProperties": false
       },
       "facetQuery": {
         "type": "string",
@@ -5949,7 +5948,8 @@
             "$ref": "#/components/schemas/searchForFacetsOptions"
           }
         ],
-        "x-discriminator-fields": ["facet", "type"]
+        "x-discriminator-fields": ["facet", "type"],
+        "unevaluatedProperties": false
       },
       "SearchQuery": {
         "oneOf": [
@@ -6017,7 +6017,6 @@
       },
       "cursor": {
         "type": "object",
-        "additionalProperties": false,
         "properties": {
           "cursor": {
             "type": "string",
@@ -6034,7 +6033,8 @@
           {
             "$ref": "#/components/schemas/cursor"
           }
-        ]
+        ],
+        "unevaluatedProperties": false
       },
       "browseParams": {
         "oneOf": [
@@ -6048,7 +6048,6 @@
       },
       "BrowsePagination": {
         "type": "object",
-        "additionalProperties": false,
         "properties": {
           "page": {
             "$ref": "#/components/schemas/page"
@@ -6078,7 +6077,8 @@
           {
             "$ref": "#/components/schemas/cursor"
           }
-        ]
+        ],
+        "unevaluatedProperties": false
       },
       "createdAt": {
         "type": "string",
@@ -6233,7 +6233,6 @@
       },
       "baseIndexSettings": {
         "type": "object",
-        "additionalProperties": false,
         "properties": {
           "attributesForFaceting": {
             "type": "array",
@@ -6425,11 +6424,11 @@
           {
             "$ref": "#/components/schemas/indexSettingsAsSearchParams"
           }
-        ]
+        ],
+        "unevaluatedProperties": false
       },
       "WithPrimary": {
         "type": "object",
-        "additionalProperties": false,
         "properties": {
           "primary": {
             "type": "string",
@@ -6445,7 +6444,8 @@
           {
             "$ref": "#/components/schemas/WithPrimary"
           }
-        ]
+        ],
+        "unevaluatedProperties": false
       },
       "SynonymType": {
         "type": "string",
@@ -6555,7 +6555,6 @@
       },
       "baseGetApiKeyResponse": {
         "type": "object",
-        "additionalProperties": false,
         "properties": {
           "value": {
             "$ref": "#/components/schemas/keyString"
@@ -6590,7 +6589,6 @@
       "apiKey": {
         "type": "object",
         "description": "API key object.",
-        "additionalProperties": false,
         "properties": {
           "acl": {
             "type": "array",
@@ -6658,7 +6656,8 @@
           {
             "$ref": "#/components/schemas/apiKey"
           }
-        ]
+        ],
+        "unevaluatedProperties": false
       },
       "addApiKeyResponse": {
         "type": "object",
@@ -6811,7 +6810,6 @@
       "params": {
         "type": "object",
         "description": "Parameters to apply to this search.\n\nYou can use all search parameters, plus special `automaticFacetFilters`, `automaticOptionalFacetFilters`, and `query`.\n",
-        "additionalProperties": false,
         "properties": {
           "query": {
             "$ref": "#/components/schemas/consequenceQuery"
@@ -6838,7 +6836,8 @@
           {
             "$ref": "#/components/schemas/params"
           }
-        ]
+        ],
+        "unevaluatedProperties": false
       },
       "promotePosition": {
         "type": "integer",
