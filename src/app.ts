@@ -93,23 +93,31 @@ program
       return { applicationId, apiKey };
     },
   )
+
+  .option("--transport [stdio|sse]", "Transport type, either `stdio` (default) or `sse`", "stdio")
   .action(async (opts) => {
     try {
-      const { startServer } = await import("./commands/start-server.ts");
-      await startServer(opts);
+      switch (opts.transport) {
+        case "stdio": {
+          console.info('Starting server with stdio transport');
+          const { startServer } = await import("./commands/start-server.ts");
+          await startServer(opts);
+          break;
+        }
+        case "sse": {
+          console.info('Starting server with SSE transport');
+          const { startSseServer } = await import("./commands/start-sse-server.ts");
+          await startSseServer(opts);
+          break;
+        }
+        default:
+          console.error(`Unknown transport type: ${opts.transport}\nAllowed values: stdio, sse`);
+          process.exit(1);
+      }
     } catch (error) {
       console.error(formatErrorForCli(error));
       process.exit(1);
     }
-  });
-
-program
-  .command("start-sse-server")
-  .description("Starts the remote-ready Algolia MCP server")
-  .option<string[]>(...ALLOW_TOOLS_OPTIONS_TUPLE)
-  .action(async (opts: StartServerOptions) => {
-    const { startSseServer } = await import("./commands/start-sse-server.ts");
-    await startSseServer(opts);
   });
 
 program
