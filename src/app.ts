@@ -94,7 +94,7 @@ program
     },
   )
 
-  .option("--transport [stdio|sse]", "Transport type, either `stdio` (default) or `sse`", "stdio")
+  .option("--transport [stdio|http]", "Transport type, either `stdio` (default) or `http`", "stdio")
   .action(async (opts) => {
     try {
       switch (opts.transport) {
@@ -104,14 +104,14 @@ program
           await startServer(opts);
           break;
         }
-        case "sse": {
-          console.info('Starting server with SSE transport');
-          const { startSseServer } = await import("./commands/start-sse-server.ts");
-          await startSseServer(opts);
+        case "http": {
+          console.info('Starting server with HTTP transport support');
+          const { startHttpServer } = await import("./commands/start-http-server.ts");
+          await startHttpServer(opts);
           break;
         }
         default:
-          console.error(`Unknown transport type: ${opts.transport}\nAllowed values: stdio, sse`);
+          console.error(`Unknown transport type: ${opts.transport}\nAllowed values: stdio, http`);
           process.exit(1);
       }
     } catch (error) {
