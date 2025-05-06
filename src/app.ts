@@ -1,5 +1,5 @@
 import { Command } from "commander";
-import { type StartServerOptions } from "./commands/start-server.ts";
+import type { StartServerOptions } from "./server/types.ts";
 import { type ListToolsOptions } from "./commands/list-tools.ts";
 
 const program = new Command("algolia-mcp");
@@ -62,9 +62,25 @@ program
   .command("start-server", { isDefault: true })
   .description("Starts the Algolia MCP server")
   .option<string[]>(...ALLOW_TOOLS_OPTIONS_TUPLE)
+  .option("--transport [stdio|http]", "Transport type, either `stdio` (default) or `http`", "stdio")
   .action(async (opts: StartServerOptions) => {
-    const { startServer } = await import("./commands/start-server.ts");
-    await startServer(opts);
+    switch (opts.transport) {
+      case "stdio": {
+        console.info('Starting server with stdio transport');
+        const { startServer } = await import("./commands/start-server.ts");
+        await startServer(opts);
+        break;
+      }
+      case "http": {
+        console.info('Starting server with HTTP transport support');
+        const { startHttpServer } = await import("./commands/start-http-server.ts");
+        await startHttpServer(opts);
+        break;
+      }
+      default:
+        console.error(`Unknown transport type: ${opts.transport}\nAllowed values: stdio, http`);
+        process.exit(1);
+    }
   });
 
 program

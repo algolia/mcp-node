@@ -107,6 +107,8 @@ Here are some example prompts to get you started:
 
 ### Claude Desktop Setup
 
+#### Local
+
 1. Open Claude Desktop settings
 2. Add the following to your configuration:
    ```json
@@ -123,6 +125,27 @@ Here are some example prompts to get you started:
 > [!TIP]
 > You can refer to the [official documentation](https://modelcontextprotocol.io/quickstart/user) for Claude Desktop.
 
+#### Remote
+To run an HTTP server, as Claude Desktop doesn't natively support it yet, you'll have to use a gateway:
+```json
+{
+  "mcpServers": {
+    "algolia-mcp": {
+      "command": "<PATH_TO_BIN>/npx",
+      "args": [
+        "-y",
+        "mcp-remote",
+        "http://localhost:4243/mcp"
+      ]
+    }
+  }
+}
+```
+> [!INFO]
+> Our HTTP server leverages the [Streamable HTTP transport](https://modelcontextprotocol.io/specification/2025-03-26/basic/transports#streamable-http).
+> It is also backward compatible with the [SSE transport](https://modelcontextprotocol.io/docs/concepts/transports#server-sent-events-sse).
+
+
 ### CLI Options
 
 #### Available Commands
@@ -131,14 +154,15 @@ Here are some example prompts to get you started:
 Usage: algolia-mcp [options] [command]
 
 Options:
-  -h, --help              display help for command
+  -h, --help                  Display help for command
 
 Commands:
-  start-server [options]  Starts the Algolia MCP server
-  authenticate            Authenticate with Algolia
-  logout                  Remove all stored credentials
-  list-tools              List all available tools
-  help [command]          display help for command
+  start-server [options]      Starts the Algolia MCP server
+  start-sse-server [options]  Starts the Algolia MCP SSE server
+  authenticate                Authenticate with Algolia
+  logout                      Remove all stored credentials
+  list-tools                  List all available tools
+  help [command]              Display help for command
 ```
 
 #### Server Options
