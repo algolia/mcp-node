@@ -1,30 +1,35 @@
 import OAuthProvider from "@cloudflare/workers-oauth-provider";
-import { McpAgent } from 'agents/mcp'
+import { McpAgent } from "agents/mcp";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { AlgoliaOAuthHandler } from "./auth-handler.ts";
 import { getToolFilter, isToolAllowed } from "../toolFilters.ts";
-import { operationId as GetUserInfoOperationId, registerGetUserInfo } from "../tools/registerGetUserInfo.ts";
+import {
+  operationId as GetUserInfoOperationId,
+  registerGetUserInfo,
+} from "../tools/registerGetUserInfo.ts";
 import {
   operationId as GetApplicationsOperationId,
-  registerGetApplications
+  registerGetApplications,
 } from "../tools/registerGetApplications.ts";
 import { registerOpenApiTools } from "../tools/registerOpenApi.ts";
 import {
   ABTestingSpec,
-  AnalyticsSpec, CollectionsSpec,
+  AnalyticsSpec,
+  CollectionsSpec,
   IngestionSpec,
-  MonitoringSpec, QuerySuggestionsSpec,
+  MonitoringSpec,
+  QuerySuggestionsSpec,
   RecommendSpec,
   SearchSpec,
-  UsageSpec
+  UsageSpec,
 } from "../openApi.ts";
 import {
   operationId as SetAttributesForFacetingOperationId,
-  registerSetAttributesForFaceting
+  registerSetAttributesForFaceting,
 } from "../tools/registerSetAttributesForFaceting.ts";
 import {
   operationId as SetCustomRankingOperationId,
-  registerSetCustomRanking
+  registerSetCustomRanking,
 } from "../tools/registerSetCustomRanking.ts";
 import { DashboardApi } from "../DashboardApi.ts";
 import { CONFIG } from "../config.ts";
@@ -36,16 +41,20 @@ export class AlgoliaMCP extends McpAgent<Env, never, Props> {
     name: "Algolia MCP on Cloudflare",
     version: CONFIG.version,
   });
-  dashboardApi = new DashboardApi({
-    baseUrl: CONFIG.dashboardApiBaseUrl,
-    appState: new InMemoryStateManager({
-      accessToken: this.props.accessToken,
-      refreshToken: this.props.refreshToken,
-      apiKeys: this.props.apiKeys,
-    }),
-  });
+  dashboardApi: DashboardApi | undefined;
 
   async init() {
+    console.log('Algolia MCP init: ', this.props);
+
+    this.dashboardApi = new DashboardApi({
+      baseUrl: CONFIG.dashboardApiBaseUrl,
+      appState: new InMemoryStateManager({
+        accessToken: this.props.accessToken,
+        refreshToken: this.props.refreshToken,
+        apiKeys: this.props.apiKeys,
+      }),
+    });
+
     const toolFilter = getToolFilter({});
 
     // Dashboard API Tools
@@ -136,6 +145,10 @@ export class AlgoliaMCP extends McpAgent<Env, never, Props> {
       requestMiddlewares: [
         // Dirty fix for Claud hallucinating regions
         async ({ request, params }) => {
+          if (this.dashboardApi == null) {
+            throw new Error("Dashboard API is not initialized");
+          }
+
           const application = await this.dashboardApi.getApplication(params.applicationId);
           const region = application.data.attributes.log_region === "de" ? "eu" : "us";
 
@@ -181,13 +194,15 @@ export class AlgoliaMCP extends McpAgent<Env, never, Props> {
 }
 
 export default new OAuthProvider({
-  apiRoute: "/sse",
   apiHandlers: {
-    "/sse": AlgoliaMCP.serveSSE('/sse') as never,
-    "/mcp": AlgoliaMCP.serve('/mcp') as never,
+    "/sse": AlgoliaMCP.serveSSE("/sse") as never,
+    "/mcp": AlgoliaMCP.serve("/mcp") as never,
   },
   defaultHandler: AlgoliaOAuthHandler as never,
   authorizeEndpoint: "/authorize",
   tokenEndpoint: "/token",
   clientRegistrationEndpoint: "/register",
+  onError: (error) => {
+    console.error("Error in OAuth Provider:", error);
+  },
 });

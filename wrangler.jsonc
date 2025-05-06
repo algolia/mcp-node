@@ -29,17 +29,15 @@
   "kv_namespaces": [
     {
       "binding": "OAUTH_KV",
-      "id": "<Add-KV-ID>"
+      "id": "7769c50a08c54103a6d621b02d1f750c",
+      "preview_id": "0367ec6a5b7b474a94fedf749847318e"
     }
   ],
-  "ai": {
-    "binding": "AI"
-  },
   "observability": {
     "enabled": true
   },
   "dev": {
-    "port": 8788
+    "port": 4242
   },
   /**
    * Smart Placement
@@ -59,9 +57,7 @@
    * https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables
    */
   "vars": {
-    "COOKIE_ENCRYPTION_KEY": "production_value",
-    "GITHUB_CLIENT_ID": "production_value",
-    "GITHUB_CLIENT_SECRET": "production_value"
+    "COOKIE_ENCRYPTION_KEY": "production_value"
   }
   /**
    * Note: Use secrets to store sensitive data.
