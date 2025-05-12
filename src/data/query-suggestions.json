@@ -11,7 +11,11 @@
       "description": "You can check the region for your application in the [Algolia dashboard](https://dashboard.algolia.com/account/infrastructure/analytics).\nIf you connect to the wrong region, the API returns an error with the status `401` and the message: \"The log processing region does not match\".\n",
       "variables": {
         "region": {
-          "enum": ["us", "eu"],
+          "description": "The region where your Algolia application is hosted.",
+          "enum": [
+            "us",
+            "eu"
+          ],
           "default": "us"
         }
       }
@@ -38,8 +42,8 @@
   "paths": {
     "/{path}": {
       "get": {
-        "operationId": "customQuerySuggestionGet",
-        "summary": "Send requests to the Algolia Query Suggestions REST API",
+        "operationId": "customGet",
+        "summary": "Send requests to the Algolia REST API",
         "description": "This method lets you send requests to the Algolia REST API.",
         "parameters": [
           {
@@ -72,11 +76,10 @@
           "404": {
             "$ref": "#/components/responses/IndexNotFound"
           }
-        },
-        "tags": ["query-suggestions"]
+        }
       },
       "post": {
-        "operationId": "customQuerySuggestionPost",
+        "operationId": "customPost",
         "requestBody": {
           "description": "Parameters to send with the custom request.",
           "content": {
@@ -87,7 +90,7 @@
             }
           }
         },
-        "summary": "Send requests to the Algolia Query Suggestions REST API",
+        "summary": "Send requests to the Algolia REST API",
         "description": "This method lets you send requests to the Algolia REST API.",
         "parameters": [
           {
@@ -120,11 +123,10 @@
           "404": {
             "$ref": "#/components/responses/IndexNotFound"
           }
-        },
-        "tags": ["query-suggestions"]
+        }
       },
       "put": {
-        "operationId": "customQuerySuggestionPut",
+        "operationId": "customPut",
         "requestBody": {
           "description": "Parameters to send with the custom request.",
           "content": {
@@ -135,7 +137,7 @@
             }
           }
         },
-        "summary": "Send requests to the Algolia Query Suggestions REST API",
+        "summary": "Send requests to the Algolia REST API",
         "description": "This method lets you send requests to the Algolia REST API.",
         "parameters": [
           {
@@ -168,13 +170,12 @@
           "404": {
             "$ref": "#/components/responses/IndexNotFound"
           }
-        },
-        "tags": ["query-suggestions"]
+        }
       },
       "delete": {
-        "operationId": "customQuerySuggestionDelete",
+        "operationId": "customDelete",
         "summary": "Send requests to the Algolia REST API",
-        "description": "This method lets you send requests to the Algolia Query Suggestions REST API.",
+        "description": "This method lets you send requests to the Algolia REST API.",
         "parameters": [
           {
             "$ref": "#/components/parameters/PathInPath"
@@ -206,16 +207,20 @@
           "404": {
             "$ref": "#/components/responses/IndexNotFound"
           }
-        },
-        "tags": ["query-suggestions"]
+        }
       }
     },
     "/1/configs": {
       "get": {
-        "tags": ["query-suggestions"],
-        "operationId": "listQuerySuggestionsConfigs",
-        "x-acl": ["settings"],
-        "summary": "List Query Suggestions configurations",
+        "tags": [
+          "configurations"
+        ],
+        "operationId": "getAllConfigs",
+        "x-mcp-tool": true,
+        "x-acl": [
+          "settings"
+        ],
+        "summary": "List configurations",
         "description": "Retrieves all Query Suggestions configurations of your Algolia application.",
         "responses": {
           "200": {
@@ -237,10 +242,15 @@
         }
       },
       "post": {
-        "tags": ["query-suggestions"],
-        "operationId": "createQuerySuggestionsConfig",
-        "x-acl": ["editSettings"],
-        "summary": "Create a Query Suggestions configuration",
+        "tags": [
+          "configurations"
+        ],
+        "operationId": "createConfig",
+        "x-mcp-tool": true,
+        "x-acl": [
+          "editSettings"
+        ],
+        "summary": "Create a configuration",
         "description": "Creates a new Query Suggestions configuration.\n\nYou can have up to 100 configurations per Algolia application.\n",
         "requestBody": {
           "required": true,
@@ -289,10 +299,15 @@
     },
     "/1/configs/{indexName}": {
       "get": {
-        "tags": ["query-suggestions"],
-        "operationId": "getQuerySuggestionsConfig",
-        "x-acl": ["settings"],
-        "summary": "Retrieve a Query Suggestions configuration",
+        "tags": [
+          "configurations"
+        ],
+        "operationId": "getConfig",
+        "x-mcp-tool": true,
+        "x-acl": [
+          "settings"
+        ],
+        "summary": "Retrieve a configuration",
         "description": "Retrieves a single Query Suggestions configuration by its index name.",
         "parameters": [
           {
@@ -322,10 +337,15 @@
         }
       },
       "put": {
-        "tags": ["query-suggestions"],
-        "operationId": "updateQuerySuggestionConfig",
-        "x-acl": ["editSettings"],
-        "summary": "Update a Query Suggestions configuration",
+        "tags": [
+          "configurations"
+        ],
+        "operationId": "updateConfig",
+        "x-mcp-tool": true,
+        "x-acl": [
+          "editSettings"
+        ],
+        "summary": "Update a configuration",
         "description": "Updates a QuerySuggestions configuration.",
         "parameters": [
           {
@@ -371,10 +391,14 @@
         }
       },
       "delete": {
-        "tags": ["query-suggestions"],
-        "operationId": "deleteQuerySuggestionConfig",
-        "x-acl": ["editSettings"],
-        "summary": "Delete a Query Suggestions configuration",
+        "tags": [
+          "configurations"
+        ],
+        "operationId": "deleteConfig",
+        "x-acl": [
+          "editSettings"
+        ],
+        "summary": "Delete a configuration",
         "description": "Deletes a Query Suggestions configuration.\n\nDeleting only removes the configuration and stops updates to the Query Suggestions index.\nTo delete the Query Suggestions index itself, use the Search API and the `Delete an index` operation.\n",
         "parameters": [
           {
@@ -412,10 +436,15 @@
     },
     "/1/configs/{indexName}/status": {
       "get": {
-        "tags": ["query-suggestions"],
-        "operationId": "getQuerySuggestionConfigStatus",
-        "x-acl": ["settings"],
-        "summary": "Retrieve a Query Suggestions configuration status",
+        "tags": [
+          "configurations"
+        ],
+        "operationId": "getConfigStatus",
+        "x-mcp-tool": true,
+        "x-acl": [
+          "settings"
+        ],
+        "summary": "Retrieve configuration status",
         "description": "Reports the status of a Query Suggestions index.",
         "parameters": [
           {
@@ -471,10 +500,15 @@
     },
     "/1/logs/{indexName}": {
       "get": {
-        "tags": ["query-suggestions"],
-        "operationId": "getQuerySuggestionLogFile",
-        "x-acl": ["settings"],
-        "summary": "Retrieve a Query Suggestions index logs",
+        "tags": [
+          "logs"
+        ],
+        "operationId": "getLogFile",
+        "x-mcp-tool": true,
+        "x-acl": [
+          "settings"
+        ],
+        "summary": "Retrieve logs",
         "description": "Retrieves the logs for a single Query Suggestions index.",
         "parameters": [
           {
@@ -527,7 +561,9 @@
       "get": {
         "x-helper": true,
         "x-asynchronous-helper": false,
-        "tags": ["query-suggestions"],
+        "tags": [
+          "Api Key"
+        ],
         "operationId": "setClientApiKey",
         "summary": "Switch the API key used to authenticate requests",
         "description": "Switch the API key used to authenticate requests.\n",
@@ -697,7 +733,12 @@
             "type": "null"
           }
         ],
-        "example": [["color", "brand"]]
+        "example": [
+          [
+            "color",
+            "brand"
+          ]
+        ]
       },
       "External": {
         "description": "Algolia indices with popular searches to use as query suggestions.\n\nRecords of these indices must have these attributes:\n\n- `query`: search query which will be added as a suggestion\n- `count`: measure of popularity of that search query\n\nFor example, you can export popular searches from an external analytics provider, such as Google Analytics or Adobe Analytics,\nand feed this data into an Algolia index.\nYou can use this index to generate query suggestions until your Algolia Analytics has collected enough data.\n",
@@ -717,7 +758,9 @@
       "SourceIndex": {
         "type": "object",
         "description": "Configuration of an Algolia index for Query Suggestions.",
-        "required": ["indexName"],
+        "required": [
+          "indexName"
+        ],
         "properties": {
           "indexName": {
             "type": "string",
@@ -794,7 +837,9 @@
       "Configuration": {
         "type": "object",
         "description": "Query Suggestions configuration.",
-        "required": ["sourceIndices"],
+        "required": [
+          "sourceIndices"
+        ],
         "properties": {
           "sourceIndices": {
             "type": "array",
@@ -825,7 +870,10 @@
       "ConfigurationWithIndex": {
         "type": "object",
         "description": "Query Suggestions configuration.",
-        "required": ["indexName", "sourceIndices"],
+        "required": [
+          "indexName",
+          "sourceIndices"
+        ],
         "allOf": [
           {
             "type": "object",
@@ -878,7 +926,11 @@
         "title": "level",
         "type": "string",
         "description": "Type of log entry.\n\n- `SKIP`. A query is skipped because it doesn't match the conditions for successful inclusion. For example, when a query doesn't generate enough search results.\n- `INFO`. An informative log entry.\n- `ERROR`. The Query Suggestions process encountered an error.\n",
-        "enum": ["SKIP", "INFO", "ERROR"]
+        "enum": [
+          "SKIP",
+          "INFO",
+          "ERROR"
+        ]
       }
     },
     "responses": {
@@ -1077,11 +1129,15 @@
   "x-tagGroups": [
     {
       "name": "Configurations",
-      "tags": ["configurations"]
+      "tags": [
+        "configurations"
+      ]
     },
     {
       "name": "Logs",
-      "tags": ["logs"]
+      "tags": [
+        "logs"
+      ]
     }
   ]
 }
