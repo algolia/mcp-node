@@ -20,7 +20,7 @@ import {
   MonitoringSpec,
   QuerySuggestionsSpec,
   RecommendSpec,
-  SearchSpec,
+  // SearchSpec,
   UsageSpec,
 } from "../openApi.ts";
 import {
@@ -43,8 +43,12 @@ export class AlgoliaMCP extends McpAgent<Env, never, Props> {
   });
   dashboardApi: DashboardApi | undefined;
 
+  constructor(state: DurableObjectState, env: Env) {
+    super(state, env);
+  }
+
   async init() {
-    console.log('Algolia MCP init: ', this.props);
+    console.log("Algolia MCP init: ", this.props);
 
     this.dashboardApi = new DashboardApi({
       baseUrl: CONFIG.dashboardApiBaseUrl,
@@ -57,22 +61,27 @@ export class AlgoliaMCP extends McpAgent<Env, never, Props> {
 
     const toolFilter = getToolFilter({});
 
+    console.log("Tool filter:", toolFilter);
+
     // Dashboard API Tools
     if (isToolAllowed(GetUserInfoOperationId, toolFilter)) {
       registerGetUserInfo(this.server, this.dashboardApi);
+      console.log("Registered GetUserInfo tool");
     }
 
     if (isToolAllowed(GetApplicationsOperationId, toolFilter)) {
       registerGetApplications(this.server, this.dashboardApi);
+      console.log("Registered GetApplications tool");
     }
-
-    // Search API Tools
-    registerOpenApiTools({
-      server: this.server,
-      dashboardApi: this.dashboardApi,
-      openApiSpec: SearchSpec,
-      toolFilter,
-    });
+    //
+    // // Search API Tools
+    // registerOpenApiTools({
+    //   server: this.server,
+    //   dashboardApi: this.dashboardApi,
+    //   openApiSpec: SearchSpec,
+    //   toolFilter,
+    // });
+    // console.log("Registered Search API tools");
 
     // Analytics API Tools
     registerOpenApiTools({
@@ -81,6 +90,7 @@ export class AlgoliaMCP extends McpAgent<Env, never, Props> {
       openApiSpec: AnalyticsSpec,
       toolFilter,
     });
+    console.log("Registered Analytics API tools");
 
     // Recommend API Tools
     registerOpenApiTools({
@@ -89,6 +99,7 @@ export class AlgoliaMCP extends McpAgent<Env, never, Props> {
       openApiSpec: RecommendSpec,
       toolFilter,
     });
+    console.log("Registered Recommend API tools");
 
     // AB Testing
     registerOpenApiTools({
@@ -97,6 +108,7 @@ export class AlgoliaMCP extends McpAgent<Env, never, Props> {
       openApiSpec: ABTestingSpec,
       toolFilter,
     });
+    console.log("Registered AB Testing API tools");
 
     // Monitoring API Tools
     registerOpenApiTools({
@@ -105,6 +117,7 @@ export class AlgoliaMCP extends McpAgent<Env, never, Props> {
       openApiSpec: MonitoringSpec,
       toolFilter,
     });
+    console.log("Registered Monitoring API tools");
 
     // Usage
     registerOpenApiTools({
@@ -135,6 +148,7 @@ export class AlgoliaMCP extends McpAgent<Env, never, Props> {
         },
       ],
     });
+    console.log("Registered Usage API tools");
 
     // Ingestion API Tools
     registerOpenApiTools({
@@ -165,6 +179,7 @@ export class AlgoliaMCP extends McpAgent<Env, never, Props> {
         },
       ],
     });
+    console.log("Registered Ingestion API tools");
 
     // Collections API Tools
     registerOpenApiTools({
@@ -173,6 +188,7 @@ export class AlgoliaMCP extends McpAgent<Env, never, Props> {
       openApiSpec: CollectionsSpec,
       toolFilter,
     });
+    console.log("Registered Collections API tools");
 
     // Query Suggestions API Tools
     registerOpenApiTools({
@@ -181,14 +197,17 @@ export class AlgoliaMCP extends McpAgent<Env, never, Props> {
       openApiSpec: QuerySuggestionsSpec,
       toolFilter,
     });
+    console.log("Registered Query Suggestions API tools");
 
     // Custom settings Tools
     if (isToolAllowed(SetAttributesForFacetingOperationId, toolFilter)) {
       registerSetAttributesForFaceting(this.server, this.dashboardApi);
+      console.log("Registered SetAttributesForFaceting tool");
     }
 
     if (isToolAllowed(SetCustomRankingOperationId, toolFilter)) {
       registerSetCustomRanking(this.server, this.dashboardApi);
+      console.log("Registered SetCustomRanking tool");
     }
   }
 }
