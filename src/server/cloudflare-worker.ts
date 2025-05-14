@@ -20,7 +20,6 @@ import {
   MonitoringSpec,
   QuerySuggestionsSpec,
   RecommendSpec,
-  // SearchSpec,
   UsageSpec,
 } from "../openApi.ts";
 import {

@@ -7,14 +7,14 @@ import {
   parseRedirectApproval,
   renderApprovalDialog,
 } from "./workers-oauth-utils.ts";
-import { CONFIG } from "../config.js";
+import { CONFIG } from "../config.ts";
 import crypto from "node:crypto";
 import type { TokenResponse } from "../authentication.ts";
 
 const app = new Hono<{ Bindings: Env & { OAUTH_PROVIDER: OAuthHelpers } }>();
 
 app.get("/authorize", async (c) => {
-  console.log("Authorize access token");
+  console.log("--> GET /authorize");
 
   const oauthReqInfo = await c.env.OAUTH_PROVIDER.parseAuthRequest(c.req.raw);
   const { clientId } = oauthReqInfo;
@@ -29,8 +29,8 @@ app.get("/authorize", async (c) => {
   return renderApprovalDialog(c.req.raw, {
     client: await c.env.OAUTH_PROVIDER.lookupClient(clientId),
     server: {
-      name: "Algolia MCP Server on Cloudflare",
-      logo: "https://avatars.githubusercontent.com/u/314135?s=200&v=4",
+      name: "Algolia MCP Server on Cloudflare (DEMO)",
+      logo: "https://storage.googleapis.com/byoc-images-assets/algolia.svg",
       description: "This is a demo Algolia MCP Remote Server using Cloudflare for hosting.", // optional
     },
     state: { oauthReqInfo }, // arbitrary data that flows through the form submission below
@@ -38,7 +38,7 @@ app.get("/authorize", async (c) => {
 });
 
 app.post("/authorize", async (c) => {
-  console.log('Received POST /authorize');
+  console.log('--> POST /authorize');
 
   // Validates form submission, extracts state, and generates Set-Cookie headers to skip approval dialog next time
   const { state, headers } = await parseRedirectApproval(c.req.raw, env.COOKIE_ENCRYPTION_KEY);
@@ -70,8 +70,8 @@ async function redirectToAlgolia(
   const authorizationUrl = new URL(CONFIG.authEndpoint);
   authorizationUrl.searchParams.set("scope", `public keys:manage applications:manage`);
   authorizationUrl.searchParams.set("response_type", "code");
-  authorizationUrl.searchParams.set("client_id", CONFIG.clientId);
-  authorizationUrl.searchParams.set("redirect_uri", "http://localhost:4242/callback");
+  authorizationUrl.searchParams.set("client_id", env.CLIENT_ID);
+  authorizationUrl.searchParams.set("redirect_uri", `${env.CALLBACK_URL}/callback`);
   authorizationUrl.searchParams.set("code_challenge", codeChallenge);
   authorizationUrl.searchParams.set("code_challenge_method", "S256");
   authorizationUrl.searchParams.set("state", btoa(JSON.stringify(oauthReqInfo)));
@@ -93,7 +93,10 @@ async function redirectToAlgolia(
  * down to the client. It ends by redirecting the client back to _its_ callback URL
  */
 app.get("/callback", async (c) => {
-  console.log('Callback received:', c.req.query("state"), c.req.query("code"));
+  console.log('--> GET /callback', {
+    state: c.req.query("state"),
+    code: c.req.query("code")
+  });
 
   // Get the oathReqInfo out of KV
   const oauthReqInfo = JSON.parse(atob(c.req.query("state") as string)) as AuthRequest;
@@ -108,8 +111,8 @@ app.get("/callback", async (c) => {
 
   // Exchange the code for an access token
   const body = new URLSearchParams({
-    client_id: CONFIG.clientId,
-    redirect_uri: CONFIG.redirectUri,
+    client_id: env.CLIENT_ID,
+    redirect_uri: `${env.CALLBACK_URL}/callback`,
     code: authenticationCode,
     grant_type: "authorization_code",
     code_verifier: "",
@@ -127,6 +130,10 @@ app.get("/callback", async (c) => {
   const token: TokenResponse = await response.json();
 
   console.log('Token received:', token);
+
+  if (!token.user.email.endsWith("@algolia.com")) {
+    return c.text("User not allowed", 403);
+  }
 
   // Return back to the MCP client a new token
   const { redirectTo } = await c.env.OAUTH_PROVIDER.completeAuthorization({

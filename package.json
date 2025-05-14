@@ -21,20 +21,19 @@
   "description": "",
   "dependencies": {
     "@cloudflare/workers-oauth-provider": "^0.0.5",
-    "@modelcontextprotocol/sdk": "^1.11.0",
-    "agents": "^0.0.77",
+    "@modelcontextprotocol/sdk": "^1.11.2",
+    "agents": "^0.0.87",
     "algoliasearch": "^5.23.4",
     "commander": "^13.1.0",
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "hono": "^4.7.8",
     "open": "^10.1.0",
-    "wrangler": "^4.14.1",
+    "wrangler": "^4.14.4",
     "zod": "^3.24.4"
   },
   "devDependencies": {
     "@eslint/js": "^9.24.0",
-    "@modelcontextprotocol/inspector": "^0.9.0",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.1",
     "@types/node": "^22.14.0",
