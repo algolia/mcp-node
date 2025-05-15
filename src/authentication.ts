@@ -3,12 +3,20 @@ import crypto from "node:crypto";
 import open from "open";
 import { CONFIG } from "./config.ts";
 
+export type User = {
+  id: string;
+  name: string;
+  email: string;
+  avatar_url: string;
+}
+
 export type TokenResponse = {
   access_token: string;
   refresh_token: string;
   expires_in: number;
   token_type: string;
   scope: string;
+  user: User;
 };
 
 function generateCodeVerifier() {

@@ -8,7 +8,11 @@
     "lint": "eslint --ext .ts src",
     "test": "vitest",
     "build": "bun build ./src/app.ts --compile --outfile dist/app",
-    "debug": "mcp-inspector npm start"
+    "debug": "mcp-inspector npm start",
+    "cf:start": "npx -y wrangler@latest dev",
+    "cf:dev": "npx -y wrangler@latest dev",
+    "cf:deploy": "npx -y wrangler@latest deploy",
+    "cf:types": "npx -y wrangler@latest types"
   },
   "type": "module",
   "keywords": [],
@@ -16,30 +20,32 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.11.0",
+    "@cloudflare/workers-oauth-provider": "^0.0.5",
+    "@modelcontextprotocol/sdk": "^1.11.3",
+    "agents": "^0.0.88",
     "algoliasearch": "^5.23.4",
     "commander": "^13.1.0",
     "cors": "^2.8.5",
     "express": "^5.1.0",
-    "open": "^10.1.0",
-    "zod": "^3.24.2"
+    "hono": "^4.7.9",
+    "open": "^10.1.2",
+    "zod": "^3.24.4"
   },
   "devDependencies": {
     "@eslint/js": "^9.24.0",
-    "@modelcontextprotocol/inspector": "^0.9.0",
-    "@types/cors": "^2.8.17",
+    "@types/cors": "^2.8.18",
     "@types/express": "^5.0.1",
-    "@types/node": "^22.14.0",
-    "@vitest/coverage-v8": "^3.1.1",
-    "bun": "^1.2.9",
+    "@types/node": "^22.14.1",
+    "@vitest/coverage-v8": "^3.1.3",
+    "bun": "^1.2.13",
     "eslint": "^9.24.0",
-    "eslint-config-prettier": "^10.1.2",
+    "eslint-config-prettier": "^10.1.5",
     "globals": "^16.0.0",
-    "msw": "^2.7.4",
+    "msw": "^2.7.6",
     "prettier": "^3.5.3",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.30.1",
-    "vitest": "^3.1.1"
+    "vitest": "^3.1.3"
   },
   "engines": {
     "node": ">=22.0.0"
