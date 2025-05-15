@@ -59,7 +59,11 @@
   "vars": {
     "COOKIE_ENCRYPTION_KEY": "production_value",
     "CALLBACK_URL": "production_value",
-    "CLIENT_ID": "production_value"
+    "CLIENT_ID": "production_value",
+    "CLIENT_SECRET": "production_value",
+    "AUTH_URL": "production_value",
+    "TOKEN_URL": "production_value",
+    "API_URL": "production_value"
   }
   /**
    * Note: Use secrets to store sensitive data.

@@ -217,9 +217,9 @@ export default new OAuthProvider({
     "/mcp": AlgoliaMCP.serve("/mcp") as never,
   },
   defaultHandler: AlgoliaOAuthHandler as never,
-  authorizeEndpoint: "/authorize",
-  tokenEndpoint: "/token",
-  clientRegistrationEndpoint: "/register",
+  authorizeEndpoint: "/oauth/authorize",
+  tokenEndpoint: "/oauth/token",
+  clientRegistrationEndpoint: "/oauth/register",
   onError: (error) => {
     console.error("Error in OAuth Provider:", error);
   },

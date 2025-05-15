@@ -1,20 +1,16 @@
 import type { AuthRequest, OAuthHelpers } from "@cloudflare/workers-oauth-provider";
-import { Hono } from "hono";
-import { type Props } from "./utils.ts";
-import { env } from "cloudflare:workers";
+import { type Context, Hono } from "hono";
+import { fetchUpstreamAuthToken, getUpstreamAuthorizeUrl, type Props } from "./utils.ts";
 import {
   clientIdAlreadyApproved,
   parseRedirectApproval,
   renderApprovalDialog,
 } from "./workers-oauth-utils.ts";
-import { CONFIG } from "../config.ts";
-import crypto from "node:crypto";
-import type { TokenResponse } from "../authentication.ts";
 
 const app = new Hono<{ Bindings: Env & { OAUTH_PROVIDER: OAuthHelpers } }>();
 
-app.get("/authorize", async (c) => {
-  console.log("--> GET /authorize");
+app.get("/oauth/authorize", async (c) => {
+  console.log("--> GET /oauth/authorize");
 
   const oauthReqInfo = await c.env.OAUTH_PROVIDER.parseAuthRequest(c.req.raw);
   const { clientId } = oauthReqInfo;
@@ -22,8 +18,8 @@ app.get("/authorize", async (c) => {
     return c.text("Invalid request", 400);
   }
 
-  if (await clientIdAlreadyApproved(c.req.raw, oauthReqInfo.clientId, env.COOKIE_ENCRYPTION_KEY)) {
-    return redirectToAlgolia(c.req.raw, oauthReqInfo);
+  if (await clientIdAlreadyApproved(c.req.raw, oauthReqInfo.clientId, c.env.COOKIE_ENCRYPTION_KEY)) {
+    return redirectToAlgolia(c, oauthReqInfo, { ...Object.fromEntries(c.req.raw.headers.entries()) });
   }
 
   return renderApprovalDialog(c.req.raw, {
@@ -37,51 +33,32 @@ app.get("/authorize", async (c) => {
   });
 });
 
-app.post("/authorize", async (c) => {
-  console.log('--> POST /authorize');
+app.post("/oauth/authorize", async (c) => {
+  console.log('--> POST /oauth/authorize');
 
   // Validates form submission, extracts state, and generates Set-Cookie headers to skip approval dialog next time
-  const { state, headers } = await parseRedirectApproval(c.req.raw, env.COOKIE_ENCRYPTION_KEY);
+  const { state, headers } = await parseRedirectApproval(c.req.raw, c.env.COOKIE_ENCRYPTION_KEY);
   if (!state.oauthReqInfo) {
     return c.text("Invalid request", 400);
   }
 
-  return redirectToAlgolia(c.req.raw, state.oauthReqInfo, headers);
+  return redirectToAlgolia(c, state.oauthReqInfo, headers);
 });
 
-function generateCodeVerifier() {
-  return crypto.randomBytes(32).toString("base64url");
-}
-
-function generateCodeChallenge(verifier: string) {
-  return crypto.createHash("sha256").update(verifier).digest("base64url");
-}
-
-async function redirectToAlgolia(
-  request: Request,
-  oauthReqInfo: AuthRequest,
-  headers: Record<string, string> = {},
-) {
-  console.log('Redirecting to Algolia:', oauthReqInfo);
-
-  const codeVerifier = generateCodeVerifier();
-  const codeChallenge = generateCodeChallenge(codeVerifier);
-
-  const authorizationUrl = new URL(CONFIG.authEndpoint);
-  authorizationUrl.searchParams.set("scope", `public keys:manage applications:manage`);
-  authorizationUrl.searchParams.set("response_type", "code");
-  authorizationUrl.searchParams.set("client_id", env.CLIENT_ID);
-  authorizationUrl.searchParams.set("redirect_uri", `${env.CALLBACK_URL}/callback`);
-  authorizationUrl.searchParams.set("code_challenge", codeChallenge);
-  authorizationUrl.searchParams.set("code_challenge_method", "S256");
-  authorizationUrl.searchParams.set("state", btoa(JSON.stringify(oauthReqInfo)));
+async function redirectToAlgolia(c: Context, oauthReqInfo: AuthRequest, headers: Record<string, string> = {}) {
   return new Response(null, {
     status: 302,
     headers: {
       ...headers,
-      location: authorizationUrl.href,
+      location: getUpstreamAuthorizeUrl({
+        upstream_url: c.env.AUTH_URL,
+        scope: 'public applications:manage keys:manage',
+        client_id: c.env.CLIENT_ID,
+        redirect_uri: new URL('/oauth/callback', c.req.url).href,
+        state: btoa(JSON.stringify(oauthReqInfo)),
+      }),
     },
-  });
+  })
 }
 
 /**
@@ -92,11 +69,8 @@ async function redirectToAlgolia(
  * user metadata & the auth token as part of the 'props' on the token passed
  * down to the client. It ends by redirecting the client back to _its_ callback URL
  */
-app.get("/callback", async (c) => {
-  console.log('--> GET /callback', {
-    state: c.req.query("state"),
-    code: c.req.query("code")
-  });
+app.get("/oauth/callback", async (c) => {
+  console.log('--> GET /oauth/callback');
 
   // Get the oathReqInfo out of KV
   const oauthReqInfo = JSON.parse(atob(c.req.query("state") as string)) as AuthRequest;
@@ -104,30 +78,16 @@ app.get("/callback", async (c) => {
     return c.text("Invalid state", 400);
   }
 
-  const authenticationCode = c.req.query("code");
-  if (!authenticationCode) {
-    return c.text("Missing code", 400);
-  }
-
-  // Exchange the code for an access token
-  const body = new URLSearchParams({
-    client_id: env.CLIENT_ID,
-    redirect_uri: `${env.CALLBACK_URL}/callback`,
-    code: authenticationCode,
-    grant_type: "authorization_code",
-    code_verifier: "",
+  const [token, errResponse] = await fetchUpstreamAuthToken({
+    upstream_url: c.env.TOKEN_URL,
+    client_id: c.env.CLIENT_ID,
+    client_secret: c.env.CLIENT_SECRET,
+    code: c.req.query("code"),
+    redirect_uri: new URL("/oauth/callback", c.req.url).href,
   });
-
-  const response = await fetch(CONFIG.tokenUrl, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body,
-  });
-  if (!response.ok) {
-    throw new Error(`Failed to get access token: ${response.statusText}`);
+  if (errResponse != null) {
+    return errResponse;
   }
-
-  const token: TokenResponse = await response.json();
 
   console.log('Token received:', token);
 

@@ -1,3 +1,5 @@
+import type { TokenResponse } from "../authentication.ts";
+
 /**
  * Constructs an authorization URL for an upstream service.
  *
@@ -55,28 +57,31 @@ export async function fetchUpstreamAuthToken({
 	client_secret: string;
 	redirect_uri: string;
 	client_id: string;
-}): Promise<[string, null] | [null, Response]> {
+}): Promise<[TokenResponse, null] | [null, Response]> {
 	if (!code) {
 		return [null, new Response("Missing code", { status: 400 })];
 	}
 
-	const resp = await fetch(upstream_url, {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/x-www-form-urlencoded",
-		},
-		body: new URLSearchParams({ client_id, client_secret, code, redirect_uri }).toString(),
-	});
+  const resp = await fetch(upstream_url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: new URLSearchParams({
+      client_id,
+      client_secret,
+      code,
+      redirect_uri,
+      grant_type: "authorization_code",
+    }).toString(),
+  });
 	if (!resp.ok) {
 		console.log(await resp.text());
 		return [null, new Response("Failed to fetch access token", { status: 500 })];
 	}
-	const body = await resp.formData();
-	const accessToken = body.get("access_token") as string;
-	if (!accessToken) {
-		return [null, new Response("Missing access token", { status: 400 })];
-	}
-	return [accessToken, null];
+	const body = await resp.json() as TokenResponse;
+
+	return [body, null];
 }
 
 // Context from the auth process, encrypted & stored in the auth token
