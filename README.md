@@ -14,14 +14,12 @@
 
 https://github.com/user-attachments/assets/c36a72e0-f790-4b3f-8720-294ab7f5f6eb
 
-
-This repository contains experimental Model Context Protocol (or MCP) servers for interacting with Algolia APIs. We're sharing it for you to explore and experiment with. 
-Feel free to use it, fork it, or build on top of it — but just know that it's not officially supported by Algolia and isn't covered under our SLA. 
+This repository contains experimental Model Context Protocol (or MCP) servers for interacting with Algolia APIs. We're sharing it for you to explore and experiment with.
+Feel free to use it, fork it, or build on top of it — but just know that it's not officially supported by Algolia and isn't covered under our SLA.
 
 We might update it, break it, or remove it entirely at any time. If you customize or configure things here, there's a chance that work could be lost. Also, using MCP in production could affect your Algolia usage.
 
 If you have feedback or ideas (even code!), we'd love to hear it. Just know that we might use it to help improve our products. This project is provided "as is" and "as available," with no guarantees or warranties. To be super clear: MCP isn't considered an "API Client" for SLA purposes.
-
 
 ## ✨ Quick Start
 
@@ -48,11 +46,13 @@ Algolia Node.js MCP enables natural language interactions with your Algolia data
 Here are some example prompts to get you started:
 
 ### Account Management
+
 ```
 "What is the email address associated with my Algolia account?"
 ```
 
 ### Applications
+
 ```
 "List all my Algolia apps."
 "List all the indices are in my 'e-commerce' application and format them into a table sorted by entries."
@@ -60,6 +60,7 @@ Here are some example prompts to get you started:
 ```
 
 ### Search & Indexing
+
 ```
 "Search my 'products' index for Nike shoes under $100."
 "Add the top 10 programming books to my 'library' index using their ISBNs as objectIDs."
@@ -67,12 +68,14 @@ Here are some example prompts to get you started:
 ```
 
 ### Analytics & Insights
+
 ```
 "What's the no-results rate for my 'products' index in the DE region? Generate a graph using React and Recharts."
 "Show me the top 10 searches with no results in the DE region from last week."
 ```
 
 ### Monitoring & Performance
+
 ```
 "Are there any ongoing incidents at Algolia?"
 "What's the current latency for my 'e-commerce' index?"
@@ -101,7 +104,7 @@ Here are some example prompts to get you started:
 
 ### Windows & Linux
 
-*Coming soon.*
+_Coming soon._
 
 ## ⚙️ Configuration
 
@@ -149,9 +152,9 @@ Usage: algolia-mcp start-server [options]
 Starts the Algolia MCP server
 
 Options:
-  -o, --allow-tools <tools>  Comma separated list of tool ids (default:
-                             ["listIndices","getSettings","searchSingleIndex","getTopSearches","getTopHits","getNoResultsRate"])
-  -h, --help                 display help for command
+  -t, --allow-tools <tools>             Comma separated list of tool ids (default: getUserInfo,getApplications,...,listIndices)
+  --credentials <applicationId:apiKey>  Application ID and associated API key to use. Optional: the MCP will authenticate you if unspecified, giving you access to all your applications.
+  -h, --help                            display help for command
 ```
 
 ## 🛠 Development
@@ -164,6 +167,7 @@ Options:
 ### Setup Development Environment
 
 1. Clone the repository:
+
    ```sh
    git clone https://github.com/algolia/mcp-node
    cd mcp-node
@@ -199,6 +203,7 @@ npm run build -- --outfile dist/algolia-mcp
 Use the [MCP Inspector](https://modelcontextprotocol.io/docs/tools/inspector) for testing and debugging:
 
 1. Run the debug script:
+
    ```sh
    cd mcp-node
    npm run debug
@@ -219,6 +224,7 @@ Use the [MCP Inspector](https://modelcontextprotocol.io/docs/tools/inspector) fo
 ### Logs and Diagnostics
 
 Log files are stored in:
+
 - macOS: `~/Library/Logs/algolia-mcp/`
 - Windows: `%APPDATA%\algolia-mcp\logs\`
 - Linux: `~/.config/algolia-mcp/logs/`

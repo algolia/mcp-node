@@ -1,8 +1,8 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { http, HttpResponse } from "msw";
 import type { ToolFilter } from "../toolFilters.ts";
-import type { DashboardApi } from "../DashboardApi.ts";
 import { ALL_SPECS, SearchSpec } from "../openApi.ts";
+import type { ProcessCallbackArguments } from "./registerOpenApi.ts";
 import { registerOpenApiTools } from "./registerOpenApi.ts";
 import { setupServer } from "msw/node";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
@@ -21,6 +21,20 @@ beforeAll(() => mswServer.listen());
 afterEach(() => mswServer.resetHandlers());
 afterAll(() => mswServer.close());
 
+const processCallbackArguments: ProcessCallbackArguments = async (params, securityKeys) => {
+  const result = { ...params };
+
+  if (securityKeys.has("applicationId")) {
+    result.applicationId = "simba";
+  }
+
+  if (securityKeys.has("apiKey")) {
+    result.apiKey = "dummy_api_key";
+  }
+
+  return result;
+};
+
 describe("registerOpenApiTools", () => {
   it("should generate a working getSettings tool", async () => {
     mswServer.use(
@@ -32,13 +46,9 @@ describe("registerOpenApiTools", () => {
     const server = new CustomMcpServer({ name: "algolia", version: "1.0.0" });
     const client = new Client({ name: "test client", version: "1.0.0" });
 
-    const dashboardApiMock = {
-      getApiKey: vi.fn().mockResolvedValue("apiKey"),
-    } as unknown as DashboardApi;
-
     registerOpenApiTools({
       server,
-      dashboardApi: dashboardApiMock,
+      processCallbackArguments,
       openApiSpec: SearchSpec,
     });
 
@@ -77,13 +87,10 @@ describe("registerOpenApiTools", () => {
     };
 
     const serverMock = { tool: vi.fn() };
-    const dashboardApiMock = {
-      getApiKey: vi.fn().mockResolvedValue("apiKey"),
-    };
 
     registerOpenApiTools({
       server: serverMock,
-      dashboardApi: dashboardApiMock as unknown as DashboardApi,
+      processCallbackArguments,
       openApiSpec: SearchSpec,
       toolFilter,
     });
@@ -94,7 +101,7 @@ describe("registerOpenApiTools", () => {
     const jsonlResponse = `{ "searchableAttributes": ["title"] }
 { "searchableAttributes": ["genre"] }`;
     mswServer.use(
-      http.get("https://appid.algolia.net/1/indexes/indexName/settings", () =>
+      http.get("https://simba.algolia.net/1/indexes/indexName/settings", () =>
         HttpResponse.text(jsonlResponse),
       ),
     );
@@ -123,7 +130,7 @@ describe("registerOpenApiTools", () => {
 
     registerOpenApiTools({
       server,
-      dashboardApi: {} as DashboardApi,
+      processCallbackArguments,
       openApiSpec: SearchSpec,
       toolFilter: {
         allowedTools: new Set(["getSettings", "setSettings", "browse"]),
@@ -159,7 +166,7 @@ describe("registerOpenApiTools", () => {
     for (const openApiSpec of ALL_SPECS) {
       registerOpenApiTools({
         server,
-        dashboardApi: {} as DashboardApi,
+        processCallbackArguments,
         openApiSpec,
       });
     }
@@ -175,13 +182,9 @@ describe("registerOpenApiTools", () => {
     const server = new CustomMcpServer({ name: "algolia", version: "1.0.0" });
     const client = new Client({ name: "test client", version: "1.0.0" });
 
-    const dashboardApiMock = {
-      getApiKey: vi.fn().mockResolvedValue("apiKey"),
-    } as unknown as DashboardApi;
-
     registerOpenApiTools({
       server,
-      dashboardApi: dashboardApiMock,
+      processCallbackArguments,
       openApiSpec: SearchSpec,
       toolFilter: {
         allowedTools: new Set(["getSettings"]),
@@ -203,13 +206,9 @@ describe("registerOpenApiTools", () => {
       const server = new CustomMcpServer({ name: "algolia", version: "1.0.0" });
       client = new Client({ name: "test client", version: "1.0.0" });
 
-      const dashboardApiMock = {
-        getApiKey: vi.fn().mockResolvedValue("someKey"),
-      } as unknown as DashboardApi;
-
       registerOpenApiTools({
         server,
-        dashboardApi: dashboardApiMock,
+        processCallbackArguments,
         openApiSpec: SearchSpec,
       });
 

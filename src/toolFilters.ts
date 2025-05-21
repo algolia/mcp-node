@@ -1,7 +1,10 @@
-export type CliFilteringOptions = {
-  allowTools?: string[];
-  denyTools?: string[];
-};
+import z from "zod";
+
+export const CliFilteringOptionsSchema = z.object({
+  allowTools: z.array(z.string()).optional(),
+  denyTools: z.array(z.string()).optional(),
+});
+export type CliFilteringOptions = z.infer<typeof CliFilteringOptionsSchema>;
 
 export type ToolFilter = {
   allowedTools?: Set<string>;

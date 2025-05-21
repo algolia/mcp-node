@@ -1,4 +1,3 @@
-import { type DashboardApi } from "../DashboardApi.ts";
 import { isToolAllowed, type ToolFilter } from "../toolFilters.ts";
 import type { Methods, OpenApiSpec, Operation, Parameter, SecurityScheme } from "../openApi.ts";
 import { CONFIG } from "../config.ts";
@@ -12,20 +11,29 @@ export type RequestMiddleware = (opts: {
   params: Record<string, any>;
 }) => Promise<Request>;
 
+export type ProcessInputSchema = (inputSchema: InputJsonSchema) => InputJsonSchema;
+export type ProcessCallbackArguments = (
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  params: Record<string, any>,
+  securityKeys: Set<string>,
+) => Promise<object>;
+
 type OpenApiToolsOptions = {
   server: Pick<CustomMcpServer, "tool">;
-  dashboardApi: DashboardApi;
   openApiSpec: OpenApiSpec;
   toolFilter?: ToolFilter;
   requestMiddlewares?: Array<RequestMiddleware>;
+  processInputSchema?: ProcessInputSchema;
+  processCallbackArguments?: ProcessCallbackArguments;
 };
 
 export async function registerOpenApiTools({
   server,
-  dashboardApi,
   openApiSpec,
   toolFilter,
   requestMiddlewares,
+  processCallbackArguments,
+  processInputSchema,
 }: OpenApiToolsOptions) {
   for (const [path, methods] of Object.entries(openApiSpec.paths)) {
     for (const [method, operation] of Object.entries(methods)) {
@@ -44,7 +52,7 @@ export async function registerOpenApiTools({
         openApiSpec,
         method: method as Methods,
         operation,
-        dashboardApi,
+        processCallbackArguments,
         requestMiddlewares,
         securityKeys,
       });
@@ -63,6 +71,7 @@ export async function registerOpenApiTools({
 
       addDefinitionsToInputSchema(inputSchema, openApiSpec);
       inputSchema.required = [...new Set(inputSchema.required)];
+      processInputSchema?.(inputSchema);
 
       server.tool({
         name: operation.operationId,
@@ -81,7 +90,7 @@ type ToolCallbackBuildOptions = {
   method: Methods;
   operation: Operation;
   securityKeys: Set<string>;
-  dashboardApi: DashboardApi;
+  processCallbackArguments?: ProcessCallbackArguments;
   requestMiddlewares?: Array<RequestMiddleware>;
 };
 
@@ -92,10 +101,15 @@ function buildToolCallback({
   operation,
   requestMiddlewares,
   securityKeys,
-  dashboardApi,
+  processCallbackArguments,
 }: ToolCallbackBuildOptions) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return async (params: Record<string, any>): Promise<CallToolResult> => {
+    // eslint-disable-next-line no-param-reassign
+    params = processCallbackArguments
+      ? await processCallbackArguments(params, securityKeys)
+      : params;
+
     const { requestBody } = params;
 
     if (method === "get" && requestBody) {
@@ -138,13 +152,7 @@ function buildToolCallback({
           throw new Error(`Unsupported security scheme type: ${securityScheme.type}`);
         }
 
-        let value: string;
-
-        if (key === "apiKey") {
-          value = await dashboardApi.getApiKey(params.applicationId);
-        } else {
-          value = params[key];
-        }
+        const value: string = params[key];
 
         if (!value) {
           throw new Error(`Missing security parameter: ${key}`);
