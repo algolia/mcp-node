@@ -12,4 +12,5 @@ export const CONFIG = {
   // Dashboard API
   dashboardApiBaseUrl: "https://api.dashboard.algolia.com",
   userAgent: `algolia-mcp-node/${PackageJson.version}`,
+  version: PackageJson.version,
 };

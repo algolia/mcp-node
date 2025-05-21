@@ -1,10 +1,9 @@
-import { z, type ZodType } from "zod";
-import { type McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { type DashboardApi } from "../DashboardApi.ts";
-import { jsonSchemaToZod } from "../helpers.ts";
 import { isToolAllowed, type ToolFilter } from "../toolFilters.ts";
-import type { Methods, OpenApiSpec, Operation, SecurityScheme } from "../openApi.ts";
+import type { Methods, OpenApiSpec, Operation, Parameter, SecurityScheme } from "../openApi.ts";
 import { CONFIG } from "../config.ts";
+import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+import type { CustomMcpServer, InputJsonSchema } from "../CustomMcpServer.ts";
+import type { SomeJSONSchema } from "ajv/dist/types/json-schema.js";
 
 export type RequestMiddleware = (opts: {
   request: Request;
@@ -12,59 +11,34 @@ export type RequestMiddleware = (opts: {
   params: Record<string, any>;
 }) => Promise<Request>;
 
+export type ProcessInputSchema = (inputSchema: InputJsonSchema) => InputJsonSchema;
+export type ProcessCallbackArguments = (
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  params: Record<string, any>,
+  securityKeys: Set<string>,
+) => Promise<object>;
+
 type OpenApiToolsOptions = {
-  server: Pick<McpServer, "tool">;
-  dashboardApi: DashboardApi;
+  server: Pick<CustomMcpServer, "tool">;
   openApiSpec: OpenApiSpec;
   toolFilter?: ToolFilter;
   requestMiddlewares?: Array<RequestMiddleware>;
+  processInputSchema?: ProcessInputSchema;
+  processCallbackArguments?: ProcessCallbackArguments;
 };
-
-function buildUrlParameters(servers: OpenApiSpec["servers"]): Record<string, ZodType> {
-  const vars = servers[0].variables || {};
-
-  return Object.entries(vars).reduce<Record<string, ZodType>>((acc, [name, urlVariable]) => {
-    let schema = z.string();
-    if (urlVariable.description) schema = schema.describe(urlVariable.description);
-
-    acc[name] = schema;
-
-    return acc;
-  }, {});
-}
-
-function buildSecurityParameters(
-  keys: Set<string>,
-  securitySchemes: Record<string, SecurityScheme>,
-): Record<string, ZodType> {
-  const result: Record<string, ZodType> = {};
-
-  for (const key of keys) {
-    // Special case for API key which we don't want the AI to fill in (it will be added internally)
-    if (key === "apiKey") continue;
-
-    let schema = z.string();
-
-    if (securitySchemes[key].description) {
-      schema = schema.describe(securitySchemes[key].description);
-    }
-
-    result[key] = schema;
-  }
-
-  return result;
-}
 
 export async function registerOpenApiTools({
   server,
-  dashboardApi,
   openApiSpec,
   toolFilter,
   requestMiddlewares,
+  processCallbackArguments,
+  processInputSchema,
 }: OpenApiToolsOptions) {
   for (const [path, methods] of Object.entries(openApiSpec.paths)) {
     for (const [method, operation] of Object.entries(methods)) {
       if (!isToolAllowed(operation.operationId, toolFilter)) continue;
+      if (operation["x-helper"]) continue;
 
       const securityKeys = new Set(
         [...(openApiSpec.security ?? []), ...(operation.security ?? [])].flatMap((item) =>
@@ -75,69 +49,86 @@ export async function registerOpenApiTools({
 
       const toolCallback = buildToolCallback({
         path,
-        serverBaseUrl: openApiSpec.servers[0].url,
+        openApiSpec,
         method: method as Methods,
         operation,
-        dashboardApi,
+        processCallbackArguments,
         requestMiddlewares,
         securityKeys,
-        securitySchemes: openApiSpec.components?.securitySchemes ?? {},
       });
 
-      server.tool(
-        operation.operationId,
-        operation.summary || operation.description || "",
-        {
-          ...buildSecurityParameters(securityKeys, securitySchemes),
-          ...buildUrlParameters(openApiSpec.servers),
-          ...buildParametersZodSchema(operation),
-        },
-        // @ts-expect-error - the types are hard to satisfy when building tools dynamically. Just trust me bro.
-        toolCallback,
-      );
+      const isReadOnly = Boolean(method === "get" || operation["x-use-read-transporter"]);
+      const inputSchema: InputJsonSchema = {
+        type: "object",
+        properties: {},
+        required: [],
+        $defs: {},
+      };
+
+      addSecurityParametersToInputSchema(inputSchema, securityKeys, securitySchemes);
+      addUrlParametersToInputSchema(inputSchema, openApiSpec.servers);
+      addParametersToInputSchema(inputSchema, operation, openApiSpec);
+
+      addDefinitionsToInputSchema(inputSchema, openApiSpec);
+      inputSchema.required = [...new Set(inputSchema.required)];
+      processInputSchema?.(inputSchema);
+
+      server.tool({
+        name: operation.operationId,
+        description: operation.summary || operation.description || "",
+        annotations: { destructiveHint: !isReadOnly, readOnlyHint: isReadOnly },
+        inputSchema,
+        cb: toolCallback,
+      });
     }
   }
 }
 
 type ToolCallbackBuildOptions = {
   path: string;
-  serverBaseUrl: string;
+  openApiSpec: OpenApiSpec;
   method: Methods;
   operation: Operation;
   securityKeys: Set<string>;
-  securitySchemes: Record<string, SecurityScheme>;
-  dashboardApi: DashboardApi;
+  processCallbackArguments?: ProcessCallbackArguments;
   requestMiddlewares?: Array<RequestMiddleware>;
 };
 
 function buildToolCallback({
   path,
-  serverBaseUrl,
+  openApiSpec,
   method,
   operation,
   requestMiddlewares,
   securityKeys,
-  securitySchemes,
-  dashboardApi,
+  processCallbackArguments,
 }: ToolCallbackBuildOptions) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return async (params: Record<string, any>) => {
+  return async (params: Record<string, any>): Promise<CallToolResult> => {
+    // eslint-disable-next-line no-param-reassign
+    params = processCallbackArguments
+      ? await processCallbackArguments(params, securityKeys)
+      : params;
+
     const { requestBody } = params;
 
     if (method === "get" && requestBody) {
       throw new Error("requestBody is not supported for GET requests");
     }
 
+    const serverBaseUrl = openApiSpec.servers[0].url;
     const preparedUrl = serverBaseUrl.replace(/{([^}]+)}/g, (_, key) => params[key]);
     const url = new URL(preparedUrl);
     url.pathname = path.replace(/{([^}]+)}/g, (_, key) => params[key]);
 
     if (operation.parameters) {
       for (const parameter of operation.parameters) {
-        if (parameter.in !== "query") continue;
+        const resolvedParameter =
+          "$ref" in parameter ? resolveRef<Parameter>(openApiSpec, parameter.$ref) : parameter;
+        if (resolvedParameter.in !== "query") continue;
         // TODO: throw error if param is required and not in callbackParams
-        if (!(parameter.name in params)) continue;
-        url.searchParams.set(parameter.name, params[parameter.name]);
+        if (!(resolvedParameter.name in params)) continue;
+        url.searchParams.set(resolvedParameter.name, params[resolvedParameter.name]);
       }
     }
 
@@ -151,6 +142,7 @@ function buildToolCallback({
     let request = new Request(url.toString(), { method, body });
 
     if (securityKeys.size) {
+      const securitySchemes = openApiSpec.components?.securitySchemes ?? {};
       for (const key of securityKeys) {
         const securityScheme = securitySchemes[key];
 
@@ -160,13 +152,7 @@ function buildToolCallback({
           throw new Error(`Unsupported security scheme type: ${securityScheme.type}`);
         }
 
-        let value: string;
-
-        if (key === "apiKey") {
-          value = await dashboardApi.getApiKey(params.applicationId);
-        } else {
-          value = params[key];
-        }
+        const value: string = params[key];
 
         if (!value) {
           throw new Error(`Missing security parameter: ${key}`);
@@ -194,15 +180,10 @@ function buildToolCallback({
     }
 
     const response = await fetch(request);
-    const data = await response.json();
+    const text = await response.text();
 
     return {
-      content: [
-        {
-          type: "text",
-          text: JSON.stringify(data),
-        },
-      ],
+      content: [{ type: "text", text }],
     };
   };
 }
@@ -220,24 +201,120 @@ function isJsonString(json: unknown): json is string {
   return false;
 }
 
-function buildParametersZodSchema(operation: Operation) {
-  const parametersSchema: Record<string, ZodType> = {};
+function addUrlParametersToInputSchema(
+  inputSchema: InputJsonSchema,
+  servers: OpenApiSpec["servers"],
+) {
+  const vars = servers[0].variables || {};
+
+  for (const [name, urlVariable] of Object.entries(vars)) {
+    inputSchema.properties[name] = {
+      type: "string",
+      description: urlVariable.description,
+    };
+    inputSchema.required.push(name);
+  }
+}
+
+function addSecurityParametersToInputSchema(
+  inputSchema: InputJsonSchema,
+  securityKeys: Set<string>,
+  securitySchemes: Record<string, SecurityScheme>,
+) {
+  for (const key of securityKeys) {
+    // Special case for API key which we don't want the AI to fill in (it will be added internally)
+    if (key === "apiKey") continue;
+    if (!securitySchemes[key]) continue;
+
+    inputSchema.properties[key] = {
+      type: "string",
+      description: securitySchemes[key].description,
+    };
+    inputSchema.required.push(key);
+  }
+}
+
+function addParametersToInputSchema(
+  inputSchema: InputJsonSchema,
+  operation: Operation,
+  spec: OpenApiSpec,
+) {
+  const requestBody = operation.requestBody?.content["application/json"];
+  if (requestBody) {
+    const bodySchema = structuredClone(
+      typeof requestBody.schema.$ref === "string"
+        ? resolveRef<SomeJSONSchema>(spec, requestBody.schema.$ref)
+        : requestBody.schema,
+    );
+
+    inputSchema.properties["requestBody"] = {
+      description: operation.requestBody?.description,
+      ...bodySchema,
+    };
+    inputSchema.required.push("requestBody");
+  }
 
   if (operation.parameters) {
     for (const parameter of operation.parameters) {
-      parametersSchema[parameter.name] = jsonSchemaToZod(parameter.schema);
+      const resolvedParameter =
+        "$ref" in parameter ? resolveRef<Parameter>(spec, parameter.$ref) : parameter;
+
+      inputSchema.properties[resolvedParameter.name] = structuredClone(resolvedParameter.schema);
+      if (resolvedParameter.required) {
+        inputSchema.required.push(resolvedParameter.name);
+      }
+    }
+  }
+}
+
+function addDefinitionsToInputSchema(inputSchema: InputJsonSchema, spec: OpenApiSpec) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const definitions: Record<string, any> = {};
+
+  function collectDefinitions(obj: unknown) {
+    if (obj === null || typeof obj !== "object") return;
+
+    if (Array.isArray(obj)) {
+      for (const item of obj) {
+        collectDefinitions(item);
+      }
+    }
+
+    if ("$ref" in obj && typeof obj.$ref === "string" && !obj.$ref.startsWith("#/$defs")) {
+      const definition = resolveRef(spec, obj.$ref);
+      const definitionName = obj.$ref.split("/").at(-1)!;
+      obj.$ref = `#/$defs/${definitionName}`;
+
+      if (definitionName in definitions) {
+        return;
+      }
+
+      const clonedDefinition = structuredClone(definition);
+      definitions[definitionName] = clonedDefinition;
+      collectDefinitions(clonedDefinition);
+      return;
+    }
+
+    for (const value of Object.values(obj)) {
+      collectDefinitions(value);
     }
   }
 
-  const requestBody = operation.requestBody?.content["application/json"];
-  if (requestBody) {
-    let requestBodySchema = jsonSchemaToZod(requestBody.schema);
+  collectDefinitions(inputSchema);
+  inputSchema.$defs = definitions;
+}
 
-    if (operation.requestBody?.description && !requestBodySchema.description) {
-      requestBodySchema = requestBodySchema.describe(operation.requestBody.description);
-    }
-    parametersSchema["requestBody"] = requestBodySchema;
+function resolveRef<Value extends SecurityScheme | SomeJSONSchema | Parameter>(
+  spec: OpenApiSpec,
+  ref: string,
+): Value {
+  const parts = ref.split("/").slice(1);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let current: any = spec;
+  for (const part of parts) {
+    current = current[part];
   }
 
-  return parametersSchema;
+  return current;
 }

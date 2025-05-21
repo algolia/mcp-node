@@ -1105,7 +1105,6 @@
       },
       "baseRecommendSearchParams": {
         "type": "object",
-        "additionalProperties": false,
         "properties": {
           "similarQuery": {
             "$ref": "#/components/schemas/similarQuery"
@@ -1201,7 +1200,6 @@
       },
       "searchParamsQuery": {
         "type": "object",
-        "additionalProperties": false,
         "properties": {
           "query": {
             "$ref": "#/components/schemas/query"
@@ -1226,7 +1224,6 @@
       },
       "baseIndexSettings": {
         "type": "object",
-        "additionalProperties": false,
         "properties": {
           "attributesForFaceting": {
             "type": "array",
@@ -1940,7 +1937,6 @@
       },
       "baseRecommendIndexSettings": {
         "type": "object",
-        "additionalProperties": false,
         "properties": {
           "attributesToRetrieve": {
             "$ref": "#/components/schemas/attributesToRetrieve"
@@ -2086,7 +2082,6 @@
       },
       "baseRecommendRequest": {
         "type": "object",
-        "additionalProperties": false,
         "properties": {
           "indexName": {
             "$ref": "#/components/schemas/indexName"
@@ -2142,7 +2137,8 @@
           {
             "$ref": "#/components/schemas/frequentlyBoughtTogether"
           }
-        ]
+        ],
+        "unevaluatedProperties": false
       },
       "relatedModel": {
         "type": "string",
@@ -2159,7 +2155,8 @@
             "type": "object",
             "description": "Search parameters to use for a fallback request if there aren't enough recommendations."
           }
-        ]
+        ],
+        "unevaluatedProperties": false
       },
       "relatedProducts": {
         "type": "object",
@@ -2185,7 +2182,8 @@
           {
             "$ref": "#/components/schemas/relatedProducts"
           }
-        ]
+        ],
+        "unevaluatedProperties": false
       },
       "facetName": {
         "type": "string",
@@ -2227,7 +2225,8 @@
           {
             "$ref": "#/components/schemas/trendingItems"
           }
-        ]
+        ],
+        "unevaluatedProperties": false
       },
       "trendingFacetsModel": {
         "type": "string",
@@ -2259,7 +2258,8 @@
           {
             "$ref": "#/components/schemas/trendingFacets"
           }
-        ]
+        ],
+        "unevaluatedProperties": false
       },
       "lookingSimilarModel": {
         "type": "string",
@@ -2290,7 +2290,8 @@
           {
             "$ref": "#/components/schemas/lookingSimilar"
           }
-        ]
+        ],
+        "unevaluatedProperties": false
       },
       "recommendationsRequest": {
         "oneOf": [
@@ -2351,7 +2352,6 @@
       },
       "baseSearchResponse": {
         "type": "object",
-        "additionalProperties": true,
         "required": ["processingTimeMS"],
         "properties": {
           "abTestID": {
@@ -2579,7 +2579,6 @@
       },
       "SearchPagination": {
         "type": "object",
-        "additionalProperties": false,
         "properties": {
           "page": {
             "$ref": "#/components/schemas/page"
@@ -2873,7 +2872,6 @@
       },
       "recommendationsHits": {
         "type": "object",
-        "additionalProperties": false,
         "properties": {
           "hits": {
             "type": "array",
@@ -2895,7 +2893,8 @@
           {
             "$ref": "#/components/schemas/recommendationsHits"
           }
-        ]
+        ],
+        "unevaluatedProperties": false
       },
       "recommendModels": {
         "type": "string",

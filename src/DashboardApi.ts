@@ -83,7 +83,7 @@ const CreateApiKeyResponse = z.object({
 });
 type CreateApiKeyResponse = z.infer<typeof CreateApiKeyResponse>;
 
-const ACL = [
+export const REQUIRED_ACLS = [
   "search",
   "listIndexes",
   "analytics",
@@ -123,7 +123,8 @@ export class DashboardApi {
     const apiKeys = this.#options.appState.get("apiKeys");
     let apiKey: string | undefined = apiKeys[applicationId];
 
-    const shouldCreateApiKey = !apiKey || !(await this.#hasRightAcl(applicationId, apiKey, ACL));
+    const shouldCreateApiKey =
+      !apiKey || !(await this.#hasRightAcl(applicationId, apiKey, REQUIRED_ACLS));
 
     if (shouldCreateApiKey) {
       apiKey = await this.#createApiKey(applicationId);
@@ -148,7 +149,7 @@ export class DashboardApi {
       {
         method: "POST",
         body: JSON.stringify({
-          acl: ACL,
+          acl: REQUIRED_ACLS,
           description: "API Key created by and for the Algolia MCP Server",
         }),
       },

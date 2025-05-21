@@ -1,6 +1,6 @@
 import { Command } from "commander";
-import { type StartServerOptions } from "./commands/start-server.ts";
-import { getToolIds, type ListToolsOptions } from "./commands/list-tools.ts";
+import { type ListToolsOptions } from "./commands/list-tools.ts";
+import { ZodError } from "zod";
 
 const program = new Command("algolia-mcp");
 
@@ -56,20 +56,50 @@ const ALLOW_TOOLS_OPTIONS_TUPLE = [
   "Comma separated list of tool ids (or all)",
   (val: string) => {
     if (val.trim().toLowerCase() === "all") {
-      return getToolIds();
+      return undefined;
     }
     return val.split(",").map((tool) => tool.trim());
   },
   DEFAULT_ALLOW_TOOLS,
 ] as const;
 
+function formatErrorForCli(error: unknown): string {
+  if (error instanceof ZodError) {
+    return [...error.errors.map((e) => `- ${e.path.join(".") || "<root>"}: ${e.message}`)].join(
+      "\n",
+    );
+  }
+
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return "Unknown error";
+}
+
 program
   .command("start-server", { isDefault: true })
   .description("Starts the Algolia MCP server")
-  .option<string[]>(...ALLOW_TOOLS_OPTIONS_TUPLE)
-  .action(async (opts: StartServerOptions) => {
-    const { startServer } = await import("./commands/start-server.ts");
-    await startServer(opts);
+  .option<string[] | undefined>(...ALLOW_TOOLS_OPTIONS_TUPLE)
+  .option(
+    "--credentials <applicationId:apiKey>",
+    "Application ID and associated API key to use. Optional: the MCP will authenticate you if unspecified, giving you access to all your applications.",
+    (val) => {
+      const [applicationId, apiKey] = val.split(":");
+      if (!applicationId || !apiKey) {
+        throw new Error("Invalid credentials format. Use applicationId:apiKey");
+      }
+      return { applicationId, apiKey };
+    },
+  )
+  .action(async (opts) => {
+    try {
+      const { startServer } = await import("./commands/start-server.ts");
+      await startServer(opts);
+    } catch (error) {
+      console.error(formatErrorForCli(error));
+      process.exit(1);
+    }
   });
 
 program
@@ -91,7 +121,7 @@ program
 program
   .command("list-tools")
   .description("List available tools")
-  .option<string[]>(...ALLOW_TOOLS_OPTIONS_TUPLE)
+  .option<string[] | undefined>(...ALLOW_TOOLS_OPTIONS_TUPLE)
   .option("--all", "List all tools")
   .action(async (opts: ListToolsOptions) => {
     const { listTools } = await import("./commands/list-tools.ts");
