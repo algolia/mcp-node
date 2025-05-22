@@ -148,6 +148,32 @@ To run an HTTP server, as Claude Desktop doesn't natively support it yet, you'll
 > Our HTTP server leverages the [Streamable HTTP transport](https://modelcontextprotocol.io/specification/2025-03-26/basic/transports#streamable-http).
 > It is also backward compatible with the [SSE transport](https://modelcontextprotocol.io/docs/concepts/transports#server-sent-events-sse).
 
+### OpenAI Playground (SSE server)
+![alt text](assets/openai_playgroud_add_mcp.png)
+
+Run the Algolia MCP server in SSE mode
+1.	Set up the project
+2.	Build the server
+3.	Authenticate with Algolia
+4.	Launch the server in SSE mode (default: on port 4243)
+
+```sh
+cd dist
+./algolia-mcp start-server --transport http
+```
+5.	Make the SSE server accessible from the internet using ngrok (installation guide)
+```sh
+ngrok http 4243
+```
+
+Add the SSE server to the Playground
+1.	Go to https://platform.openai.com/playground
+2.	Select Tools > “MCP Server”
+3.	Add the `https://[random].ngrok-free.app` obtained after running ngrok
+4.	Select “None” for authentication
+
+### n8n or any other MCP client using an SSE server
+Follow the same instructions as for the OpenAI Playground.
 
 ### CLI Options
 
