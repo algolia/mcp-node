@@ -160,8 +160,7 @@ Options:
   -h, --help                  Display help for command
 
 Commands:
-  start-server [options]      Starts the Algolia MCP server
-  start-sse-server [options]  Starts the Algolia MCP SSE server
+  start-server [options]      Starts the Algolia MCP server ()
   authenticate                Authenticate with Algolia
   logout                      Remove all stored credentials
   list-tools                  List all available tools
@@ -178,7 +177,8 @@ Starts the Algolia MCP server
 Options:
   -t, --allow-tools <tools>             Comma separated list of tool ids (default: getUserInfo,getApplications,...,listIndices)
   --credentials <applicationId:apiKey>  Application ID and associated API key to use. Optional: the MCP will authenticate you if unspecified, giving you access to all your applications.
-  -h, --help                            display help for command
+  --transport [stdio|http]              Transport type (default:stdio)
+  -h, --help                            Display help for command
 ```
 
 ## 🛠 Development
