@@ -13,21 +13,29 @@ const DEFAULT_APP_STATE: AppState = {
   apiKeys: {},
 };
 
-const home = process.env.HOME || process.env.USERPROFILE;
-
-if (!home) {
-  throw new Error("Could not find home directory");
-}
-
-const STORAGE_PATH = path.join(home, ".algolia-mcp");
-const APP_STATE_PATH = path.join(STORAGE_PATH, "state.json");
-
 let SINGLETON: AppStateManager | null = null;
 
-export class AppStateManager {
-  #appState: AppState;
+abstract class StateManager {
+  abstract appState: AppState;
+
+  abstract get<K extends keyof AppState>(key: K): AppState[K];
+
+  abstract update(update: Partial<AppState>): Promise<void>;
+}
+
+export class AppStateManager implements StateManager {
+  appState: AppState;
 
   static async load() {
+    const home = process.env.HOME || process.env.USERPROFILE;
+
+    if (!home) {
+      throw new Error("Could not find home directory");
+    }
+
+    const STORAGE_PATH = path.join(home, ".algolia-mcp");
+    const APP_STATE_PATH = path.join(STORAGE_PATH, "state.json");
+
     if (!SINGLETON) {
       await mkdir(STORAGE_PATH, { recursive: true });
 
@@ -46,21 +54,54 @@ export class AppStateManager {
   }
 
   static async reset(): Promise<void> {
+    const home = process.env.HOME || process.env.USERPROFILE;
+
+    if (!home) {
+      throw new Error("Could not find home directory");
+    }
+
     SINGLETON = null;
+
+    const STORAGE_PATH = path.join(home, ".algolia-mcp");
 
     await fs.rmdir(STORAGE_PATH, { recursive: true });
   }
 
   constructor(initialState: AppState) {
-    this.#appState = initialState;
+    this.appState = initialState;
   }
 
   get<K extends keyof AppState>(key: K): AppState[K] {
-    return this.#appState[key];
+    return this.appState[key];
   }
 
   async update(update: Partial<AppState>) {
-    this.#appState = { ...this.#appState, ...update };
-    await fs.writeFile(APP_STATE_PATH, JSON.stringify(this.#appState));
+    const home = process.env.HOME || process.env.USERPROFILE;
+
+    if (!home) {
+      throw new Error("Could not find home directory");
+    }
+
+    const STORAGE_PATH = path.join(home, ".algolia-mcp");
+    const APP_STATE_PATH = path.join(STORAGE_PATH, "state.json");
+
+    this.appState = { ...this.appState, ...update };
+    await fs.writeFile(APP_STATE_PATH, JSON.stringify(this.appState));
+  }
+}
+
+export class InMemoryStateManager implements StateManager {
+  appState: AppState;
+
+  constructor(initialState: AppState) {
+    this.appState = initialState;
+  }
+
+  get<K extends keyof AppState>(key: K): AppState[K] {
+    return this.appState[key];
+  }
+
+  async update(update: Partial<AppState>) {
+    this.appState = { ...this.appState, ...update };
   }
 }
