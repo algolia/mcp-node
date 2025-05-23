@@ -1,4 +1,3 @@
-import type { StartServerOptions } from "./types.ts";
 import { AppStateManager } from "../appState.ts";
 import { authenticate } from "../authentication.ts";
 import { DashboardApi } from "../DashboardApi.ts";
@@ -12,7 +11,11 @@ import {
   operationId as GetApplicationsOperationId,
   registerGetApplications,
 } from "../tools/registerGetApplications.ts";
-import { registerOpenApiTools } from "../tools/registerOpenApi.ts";
+import {
+  type ProcessCallbackArguments, type ProcessInputSchema,
+  registerOpenApiTools,
+  type RequestMiddleware
+} from "../tools/registerOpenApi.ts";
 import {
   ABTestingSpec,
   AnalyticsSpec,
@@ -24,7 +27,6 @@ import {
   SearchSpec,
   UsageSpec,
 } from "../openApi.ts";
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import {
   operationId as SetAttributesForFacetingOperationId,
   registerSetAttributesForFaceting,
@@ -33,9 +35,70 @@ import {
   operationId as SetCustomRankingOperationId,
   registerSetCustomRanking,
 } from "../tools/registerSetCustomRanking.ts";
+import { CustomMcpServer } from "../CustomMcpServer.ts";
+import { type StartServerOptions, StartServerOptionsSchema } from "./types.ts";
 
-export async function initMCPServer(opts: StartServerOptions): Promise<McpServer> {
-  try {
+function makeRegionRequestMiddleware(dashboardApi: DashboardApi): RequestMiddleware {
+  return async ({ request, params }) => {
+    const application = await dashboardApi.getApplication(params.applicationId);
+    const region = application.data.attributes.log_region === "de" ? "eu" : "us";
+
+    const url = new URL(request.url);
+    const regionFromUrl = url.hostname.match(/data\.(.+)\.algolia.com/)?.[0];
+
+    if (regionFromUrl !== region) {
+      console.error("Had to adjust region from", regionFromUrl, "to", region);
+      url.hostname = `data.${region}.algolia.com`;
+      return new Request(url, request.clone());
+    }
+
+    return request;
+  };
+}
+
+export async function initMCPServer(options: StartServerOptions): Promise<CustomMcpServer> {
+  const { credentials, ...opts } = StartServerOptionsSchema.parse(options);
+  const toolFilter = getToolFilter(opts);
+
+  const server = new CustomMcpServer({
+    name: "algolia",
+    version: CONFIG.version,
+    capabilities: {
+      resources: {},
+      tools: {},
+    },
+  });
+
+  const regionHotFixMiddlewares: RequestMiddleware[] = [];
+  let processCallbackArguments: ProcessCallbackArguments;
+  const processInputSchema: ProcessInputSchema = (inputSchema) => {
+    // If we got it from the options, we don't need it from the AI
+    if (credentials && inputSchema.properties?.applicationId) {
+      delete inputSchema.properties.applicationId;
+
+      if (Array.isArray(inputSchema.required)) {
+        inputSchema.required = inputSchema.required.filter((item) => item !== "applicationId");
+      }
+    }
+
+    return inputSchema;
+  };
+
+  if (credentials) {
+    processCallbackArguments = async (params, securityKeys) => {
+      const result = { ...params };
+
+      if (securityKeys.has("applicationId")) {
+        result.applicationId = credentials.applicationId;
+      }
+
+      if (securityKeys.has("apiKey")) {
+        result.apiKey = credentials.apiKey;
+      }
+
+      return result;
+    };
+  } else {
     const appState = await AppStateManager.load();
 
     if (!appState.get("accessToken")) {
@@ -47,21 +110,19 @@ export async function initMCPServer(opts: StartServerOptions): Promise<McpServer
       });
     }
 
-    const dashboardApi = new DashboardApi({
-      baseUrl: CONFIG.dashboardApiBaseUrl,
-      appState,
-    });
+    const dashboardApi = new DashboardApi({ baseUrl: CONFIG.dashboardApiBaseUrl, appState });
 
-    const server = new McpServer({
-      name: "algolia",
-      version: CONFIG.version,
-      capabilities: {
-        resources: {},
-        tools: {},
-      },
-    });
+    processCallbackArguments = async (params, securityKeys) => {
+      const result = { ...params };
 
-    const toolFilter = getToolFilter(opts);
+      if (securityKeys.has("apiKey")) {
+        result.apiKey = await dashboardApi.getApiKey(params.applicationId);
+      }
+
+      return result;
+    };
+
+    regionHotFixMiddlewares.push(makeRegionRequestMiddleware(dashboardApi));
 
     // Dashboard API Tools
     if (isToolAllowed(GetUserInfoOperationId, toolFilter)) {
@@ -72,119 +133,7 @@ export async function initMCPServer(opts: StartServerOptions): Promise<McpServer
       registerGetApplications(server, dashboardApi);
     }
 
-    // Search API Tools
-    registerOpenApiTools({
-      server,
-      dashboardApi,
-      openApiSpec: SearchSpec,
-      toolFilter,
-    });
-
-    // Analytics API Tools
-    registerOpenApiTools({
-      server,
-      dashboardApi,
-      openApiSpec: AnalyticsSpec,
-      toolFilter,
-    });
-
-    // Recommend API Tools
-    registerOpenApiTools({
-      server,
-      dashboardApi,
-      openApiSpec: RecommendSpec,
-      toolFilter,
-    });
-
-    // AB Testing
-    registerOpenApiTools({
-      server,
-      dashboardApi,
-      openApiSpec: ABTestingSpec,
-      toolFilter,
-    });
-
-    // Monitoring API Tools
-    registerOpenApiTools({
-      server,
-      dashboardApi,
-      openApiSpec: MonitoringSpec,
-      toolFilter,
-    });
-
-    // Usage
-    registerOpenApiTools({
-      server,
-      dashboardApi,
-      openApiSpec: UsageSpec,
-      toolFilter,
-      requestMiddlewares: [
-        // The Usage API expects `name` parameter as multiple values
-        // rather than comma-separated.
-        async ({ request }) => {
-          const url = new URL(request.url);
-          const nameParams = url.searchParams.get("name");
-
-          if (!nameParams) {
-            return new Request(url, request.clone());
-          }
-
-          const nameValues = nameParams.split(",");
-
-          url.searchParams.delete("name");
-
-          nameValues.forEach((value) => {
-            url.searchParams.append("name", value);
-          });
-
-          return new Request(url, request.clone());
-        },
-      ],
-    });
-
-    // Ingestion API Tools
-    registerOpenApiTools({
-      server,
-      dashboardApi,
-      openApiSpec: IngestionSpec,
-      toolFilter,
-      requestMiddlewares: [
-        // Dirty fix for Claud hallucinating regions
-        async ({ request, params }) => {
-          const application = await dashboardApi.getApplication(params.applicationId);
-          const region = application.data.attributes.log_region === "de" ? "eu" : "us";
-
-          const url = new URL(request.url);
-          const regionFromUrl = url.hostname.match(/data\.(.+)\.algolia.com/)?.[0];
-
-          if (regionFromUrl !== region) {
-            console.error("Had to adjust region from", regionFromUrl, "to", region);
-            url.hostname = `data.${region}.algolia.com`;
-            return new Request(url, request.clone());
-          }
-
-          return request;
-        },
-      ],
-    });
-
-    // Collections API Tools
-    registerOpenApiTools({
-      server,
-      dashboardApi,
-      openApiSpec: CollectionsSpec,
-      toolFilter,
-    });
-
-    // Query Suggestions API Tools
-    registerOpenApiTools({
-      server,
-      dashboardApi,
-      openApiSpec: QuerySuggestionsSpec,
-      toolFilter,
-    });
-
-    // Custom settings Tools
+    // TODO: Make it available when with applicationId+apiKey mode too
     if (isToolAllowed(SetAttributesForFacetingOperationId, toolFilter)) {
       registerSetAttributesForFaceting(server, dashboardApi);
     }
@@ -192,10 +141,69 @@ export async function initMCPServer(opts: StartServerOptions): Promise<McpServer
     if (isToolAllowed(SetCustomRankingOperationId, toolFilter)) {
       registerSetCustomRanking(server, dashboardApi);
     }
-
-    return server;
-  } catch (err) {
-    console.error("Error starting server:", err);
-    process.exit(1);
   }
+
+  for (const openApiSpec of [
+    SearchSpec,
+    AnalyticsSpec,
+    RecommendSpec,
+    ABTestingSpec,
+    MonitoringSpec,
+    CollectionsSpec,
+    QuerySuggestionsSpec,
+  ]) {
+    registerOpenApiTools({
+      server,
+      processInputSchema,
+      processCallbackArguments,
+      openApiSpec,
+      toolFilter,
+    });
+  }
+
+  // Usage
+  registerOpenApiTools({
+    server,
+    processInputSchema,
+    processCallbackArguments,
+    openApiSpec: UsageSpec,
+    toolFilter,
+    requestMiddlewares: [
+      // The Usage API expects `name` parameter as multiple values
+      // rather than comma-separated.
+      async ({ request }) => {
+        const url = new URL(request.url);
+        const nameParams = url.searchParams.get("name");
+
+        if (!nameParams) {
+          return new Request(url, request.clone());
+        }
+
+        const nameValues = nameParams.split(",");
+
+        url.searchParams.delete("name");
+
+        nameValues.forEach((value) => {
+          url.searchParams.append("name", value);
+        });
+
+        return new Request(url, request.clone());
+      },
+    ],
+  });
+
+  // Ingestion API Tools
+  registerOpenApiTools({
+    server,
+    processInputSchema,
+    processCallbackArguments,
+    openApiSpec: IngestionSpec,
+    toolFilter,
+    requestMiddlewares: [
+      // Dirty fix for Claud hallucinating regions
+      ...regionHotFixMiddlewares,
+    ],
+  });
+
+  return server;
 }
