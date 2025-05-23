@@ -82,7 +82,6 @@ program
   .action(async (opts) => {
     switch (opts.transport) {
       case "stdio": {
-        console.info('Starting server with stdio transport');
         const { startServer } = await import("./commands/start-server.ts");
         await startServer(opts);
         break;
