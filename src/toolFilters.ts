@@ -3,6 +3,7 @@ import z from "zod";
 export const CliFilteringOptionsSchema = z.object({
   allowTools: z.array(z.string()).optional(),
   denyTools: z.array(z.string()).optional(),
+  transport: z.literal('stdio').or(z.literal('http')).default('stdio')
 });
 export type CliFilteringOptions = z.infer<typeof CliFilteringOptionsSchema>;
 
