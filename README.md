@@ -110,6 +110,8 @@ _Coming soon._
 
 ### Claude Desktop Setup
 
+#### Local
+
 1. Open Claude Desktop settings
 2. Add the following to your configuration:
    ```json
@@ -126,6 +128,53 @@ _Coming soon._
 > [!TIP]
 > You can refer to the [official documentation](https://modelcontextprotocol.io/quickstart/user) for Claude Desktop.
 
+#### Remote
+To run an HTTP server, as Claude Desktop doesn't natively support it yet, you'll have to use a gateway:
+```json
+{
+  "mcpServers": {
+    "algolia-mcp": {
+      "command": "<PATH_TO_BIN>/npx",
+      "args": [
+        "-y",
+        "mcp-remote",
+        "http://localhost:4243/mcp"
+      ]
+    }
+  }
+}
+```
+> [!INFO]
+> Our HTTP server leverages the [Streamable HTTP transport](https://modelcontextprotocol.io/specification/2025-03-26/basic/transports#streamable-http).
+> It is also backward compatible with the [SSE transport](https://modelcontextprotocol.io/docs/concepts/transports#server-sent-events-sse).
+
+### OpenAI Playground (SSE server)
+![alt text](assets/openai_playgroud_add_mcp.png)
+
+Run the Algolia MCP server in SSE mode
+1.	Set up the project
+2.	Build the server
+3.	Authenticate with Algolia
+4.	Launch the server in SSE mode (default: on port 4243)
+
+```sh
+cd dist
+./algolia-mcp start-server --transport http
+```
+5.	Make the SSE server accessible from the internet using ngrok (installation guide)
+```sh
+ngrok http 4243
+```
+
+Add the SSE server to the Playground
+1.	Go to https://platform.openai.com/playground
+2.	Select Tools > “MCP Server”
+3.	Add the `https://[random].ngrok-free.app` obtained after running ngrok
+4.	Select “None” for authentication
+
+### n8n or any other MCP client using an SSE server
+Follow the same instructions as for the OpenAI Playground.
+
 ### CLI Options
 
 #### Available Commands
@@ -134,14 +183,14 @@ _Coming soon._
 Usage: algolia-mcp [options] [command]
 
 Options:
-  -h, --help              display help for command
+  -h, --help                  Display help for command
 
 Commands:
-  start-server [options]  Starts the Algolia MCP server
-  authenticate            Authenticate with Algolia
-  logout                  Remove all stored credentials
-  list-tools              List all available tools
-  help [command]          display help for command
+  start-server [options]      Starts the Algolia MCP server ()
+  authenticate                Authenticate with Algolia
+  logout                      Remove all stored credentials
+  list-tools                  List all available tools
+  help [command]              Display help for command
 ```
 
 #### Server Options
@@ -154,7 +203,8 @@ Starts the Algolia MCP server
 Options:
   -t, --allow-tools <tools>             Comma separated list of tool ids (default: getUserInfo,getApplications,...,listIndices)
   --credentials <applicationId:apiKey>  Application ID and associated API key to use. Optional: the MCP will authenticate you if unspecified, giving you access to all your applications.
-  -h, --help                            display help for command
+  --transport [stdio|http]              Transport type (default:stdio)
+  -h, --help                            Display help for command
 ```
 
 ## 🛠 Development

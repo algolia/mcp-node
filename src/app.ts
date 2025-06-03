@@ -1,6 +1,5 @@
 import { Command } from "commander";
 import { type ListToolsOptions } from "./commands/list-tools.ts";
-import { ZodError } from "zod";
 
 const program = new Command("algolia-mcp");
 
@@ -63,20 +62,6 @@ const ALLOW_TOOLS_OPTIONS_TUPLE = [
   DEFAULT_ALLOW_TOOLS,
 ] as const;
 
-function formatErrorForCli(error: unknown): string {
-  if (error instanceof ZodError) {
-    return [...error.errors.map((e) => `- ${e.path.join(".") || "<root>"}: ${e.message}`)].join(
-      "\n",
-    );
-  }
-
-  if (error instanceof Error) {
-    return error.message;
-  }
-
-  return "Unknown error";
-}
-
 program
   .command("start-server", { isDefault: true })
   .description("Starts the Algolia MCP server")
@@ -92,13 +77,24 @@ program
       return { applicationId, apiKey };
     },
   )
+
+  .option("--transport [stdio|http]", "Transport type, either `stdio` (default) or `http`", "stdio")
   .action(async (opts) => {
-    try {
-      const { startServer } = await import("./commands/start-server.ts");
-      await startServer(opts);
-    } catch (error) {
-      console.error(formatErrorForCli(error));
-      process.exit(1);
+    switch (opts.transport) {
+      case "stdio": {
+        const { startServer } = await import("./commands/start-server.ts");
+        await startServer(opts);
+        break;
+      }
+      case "http": {
+        console.info('Starting server with HTTP transport support');
+        const { startHttpServer } = await import("./commands/start-http-server.ts");
+        await startHttpServer(opts);
+        break;
+      }
+      default:
+        console.error(`Unknown transport type: ${opts.transport}\nAllowed values: stdio, http`);
+        process.exit(1);
     }
   });
 
