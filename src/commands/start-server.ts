@@ -45,10 +45,12 @@ import { z } from "zod";
 
 export const StartServerOptionsSchema = CliFilteringOptionsSchema.extend({
   credentials: z
-    .object({
-      applicationId: z.string(),
-      apiKey: z.string(),
-    })
+    .array(
+      z.object({
+        applicationId: z.string(),
+        apiKey: z.string(),
+      })
+    )
     .optional(),
 });
 
@@ -88,28 +90,39 @@ export async function startServer(options: StartServerOptions): Promise<CustomMc
   const regionHotFixMiddlewares: RequestMiddleware[] = [];
   let processCallbackArguments: ProcessCallbackArguments;
   const processInputSchema: ProcessInputSchema = (inputSchema) => {
-    // If we got it from the options, we don't need it from the AI
-    if (credentials && inputSchema.properties?.applicationId) {
-      delete inputSchema.properties.applicationId;
-
-      if (Array.isArray(inputSchema.required)) {
-        inputSchema.required = inputSchema.required.filter((item) => item !== "applicationId");
-      }
-    }
-
+    // Keep the applicationId parameter so the AI can specify which application to use
+    // when multiple credentials are provided
     return inputSchema;
   };
 
-  if (credentials) {
+  if (credentials && credentials.length > 0) {
     processCallbackArguments = async (params, securityKeys) => {
       const result = { ...params };
 
       if (securityKeys.has("applicationId")) {
-        result.applicationId = credentials.applicationId;
-      }
-
-      if (securityKeys.has("apiKey")) {
-        result.apiKey = credentials.apiKey;
+        // Find the credential that matches the requested applicationId
+        const requestedAppId = params.applicationId;
+        const matchingCredential = credentials.find(cred => cred.applicationId === requestedAppId);
+        
+        if (matchingCredential) {
+          result.applicationId = matchingCredential.applicationId;
+          
+          if (securityKeys.has("apiKey")) {
+            result.apiKey = matchingCredential.apiKey;
+          }
+        } else {
+          // If no matching credential found, use the first one as fallback
+          console.warn(`No credentials found for applicationId: ${requestedAppId}, using first available credential`);
+          result.applicationId = credentials[0].applicationId;
+          
+          if (securityKeys.has("apiKey")) {
+            result.apiKey = credentials[0].apiKey;
+          }
+        }
+      } else if (securityKeys.has("apiKey")) {
+        // If no applicationId is specified, use the first credential
+        result.applicationId = credentials[0].applicationId;
+        result.apiKey = credentials[0].apiKey;
       }
 
       return result;

@@ -21,20 +21,20 @@ describe("when specifying credentials flag", () => {
     await expect(
       startServer({
         // @ts-expect-error -- I'm testing missing params
-        credentials: { applicationId: "appId" },
+        credentials: [{ applicationId: "appId" }],
       }),
     ).rejects.toThrow(ZodError);
     await expect(
       startServer({
         // @ts-expect-error -- I'm testing missing params
-        credentials: { apiKey: "apiKey" },
+        credentials: [{ apiKey: "apiKey" }],
       }),
     ).rejects.toThrow(ZodError);
   });
 
   it("should not throw if both params are provided", async () => {
     vi.spyOn(AppStateManager, "load").mockRejectedValue(new Error("Should not be called"));
-    const server = await startServer({ credentials: { applicationId: "appId", apiKey: "apiKey" } });
+    const server = await startServer({ credentials: [{ applicationId: "appId", apiKey: "apiKey" }] });
 
     expect(AppStateManager.load).not.toHaveBeenCalled();
 
@@ -49,10 +49,12 @@ describe("when specifying credentials flag", () => {
     );
     const client = new Client({ name: "test client", version: "1.0.0" });
     const server = await startServer({
-      credentials: {
-        apiKey: "apiKey",
-        applicationId: "appId",
-      },
+      credentials: [
+        {
+          apiKey: "apiKey",
+          applicationId: "appId",
+        },
+      ],
       allowTools: ["setSettings"],
     });
 
@@ -67,6 +69,7 @@ describe("when specifying credentials flag", () => {
     const result = await client.callTool({
       name: "setSettings",
       arguments: {
+        applicationId: "appId",
         indexName: "indexName",
         requestBody: {
           searchableAttributes: ["title"],
@@ -85,6 +88,175 @@ describe("when specifying credentials flag", () => {
       }
     `);
 
+    await server.close();
+  });
+
+  it("should work with multiple credentials and use the first one", async () => {
+    mswServer.use(
+      http.put("https://appid1.algolia.net/1/indexes/indexName/settings", () =>
+        Response.json({ taskId: 123 }),
+      ),
+    );
+    const client = new Client({ name: "test client", version: "1.0.0" });
+    const server = await startServer({
+      credentials: [
+        {
+          apiKey: "apiKey1",
+          applicationId: "appId1",
+        },
+        {
+          apiKey: "apiKey2",
+          applicationId: "appId2",
+        },
+      ],
+      allowTools: ["setSettings"],
+    });
+
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    await Promise.all([client.connect(clientTransport), server.connect(serverTransport)]);
+
+    const { tools } = await client.listTools();
+
+    expect(tools).toHaveLength(1);
+    expect(tools[0].name).toBe("setSettings");
+
+    const result = await client.callTool({
+      name: "setSettings",
+      arguments: {
+        applicationId: "appId1",
+        indexName: "indexName",
+        requestBody: {
+          searchableAttributes: ["title"],
+        },
+      },
+    });
+
+    expect(result).toMatchInlineSnapshot(`
+      {
+        "content": [
+          {
+            "text": "{"taskId":123}",
+            "type": "text",
+          },
+        ],
+      }
+    `);
+
+    await server.close();
+  });
+
+  it("should select the correct credentials based on applicationId", async () => {
+    mswServer.use(
+      http.put("https://appid2.algolia.net/1/indexes/indexName/settings", () =>
+        Response.json({ taskId: 456 }),
+      ),
+    );
+    const client = new Client({ name: "test client", version: "1.0.0" });
+    const server = await startServer({
+      credentials: [
+        {
+          apiKey: "apiKey1",
+          applicationId: "appId1",
+        },
+        {
+          apiKey: "apiKey2",
+          applicationId: "appId2",
+        },
+      ],
+      allowTools: ["setSettings"],
+    });
+
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    await Promise.all([client.connect(clientTransport), server.connect(serverTransport)]);
+
+    const { tools } = await client.listTools();
+
+    expect(tools).toHaveLength(1);
+    expect(tools[0].name).toBe("setSettings");
+
+    const result = await client.callTool({
+      name: "setSettings",
+      arguments: {
+        applicationId: "appId2",
+        indexName: "indexName",
+        requestBody: {
+          searchableAttributes: ["title"],
+        },
+      },
+    });
+
+    expect(result).toMatchInlineSnapshot(`
+      {
+        "content": [
+          {
+            "text": "{"taskId":456}",
+            "type": "text",
+          },
+        ],
+      }
+    `);
+
+    await server.close();
+  });
+
+  it("should fallback to first credential when applicationId is not found", async () => {
+    const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    
+    mswServer.use(
+      http.put("https://appid1.algolia.net/1/indexes/indexName/settings", () =>
+        Response.json({ taskId: 789 }),
+      ),
+    );
+    const client = new Client({ name: "test client", version: "1.0.0" });
+    const server = await startServer({
+      credentials: [
+        {
+          apiKey: "apiKey1",
+          applicationId: "appId1",
+        },
+        {
+          apiKey: "apiKey2",
+          applicationId: "appId2",
+        },
+      ],
+      allowTools: ["setSettings"],
+    });
+
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    await Promise.all([client.connect(clientTransport), server.connect(serverTransport)]);
+
+    const { tools } = await client.listTools();
+
+    expect(tools).toHaveLength(1);
+    expect(tools[0].name).toBe("setSettings");
+
+    const result = await client.callTool({
+      name: "setSettings",
+      arguments: {
+        applicationId: "nonExistentAppId",
+        indexName: "indexName",
+        requestBody: {
+          searchableAttributes: ["title"],
+        },
+      },
+    });
+
+    expect(consoleSpy).toHaveBeenCalledWith(
+      "No credentials found for applicationId: nonExistentAppId, using first available credential"
+    );
+
+    expect(result).toMatchInlineSnapshot(`
+      {
+        "content": [
+          {
+            "text": "{"taskId":789}",
+            "type": "text",
+          },
+        ],
+      }
+    `);
+
+    consoleSpy.mockRestore();
     await server.close();
   });
 });

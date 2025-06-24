@@ -82,14 +82,15 @@ program
   .description("Starts the Algolia MCP server")
   .option<string[] | undefined>(...ALLOW_TOOLS_OPTIONS_TUPLE)
   .option(
-    "--credentials <applicationId:apiKey>",
-    "Application ID and associated API key to use. Optional: the MCP will authenticate you if unspecified, giving you access to all your applications.",
-    (val) => {
+    "--credentials <applicationId:apiKey...>",
+    "Application ID and associated API key pairs to use. Can be specified multiple times. Optional: the MCP will authenticate you if unspecified, giving you access to all your applications.",
+    (val, previous: Array<{ applicationId: string; apiKey: string }> = []) => {
       const [applicationId, apiKey] = val.split(":");
       if (!applicationId || !apiKey) {
         throw new Error("Invalid credentials format. Use applicationId:apiKey");
       }
-      return { applicationId, apiKey };
+      previous.push({ applicationId, apiKey });
+      return previous;
     },
   )
   .action(async (opts) => {
