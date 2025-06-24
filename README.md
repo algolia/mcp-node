@@ -31,6 +31,14 @@ If you have feedback or ideas (even code!), we'd love to hear it. Just know that
 > [!NOTE]
 > For step-by-step instructions, follow the [installation guide](#-installation) and [configuration for Claude Desktop](#%EF%B8%8F-configuration).
 
+## 📦 Dockerized version
+
+There is a basic `Dockerfile` to run a containerized version that exposes the SSE server in a Docker container using ngrok. You will need an `ngrok` API token and Algolia credentials.
+
+To run the container:
+1. `docker build -t mcp-ngrok .`
+2. `docker run -e NGROK_AUTHTOKEN=xxxxxxxxx -e ALGOLIA_CREDS=xxxxx:xxxxxxxxxxxx -it --rm mcp-ngrok`
+
 ## 🚀 Features
 
 Algolia Node.js MCP enables natural language interactions with your Algolia data through Claude Desktop. This implementation allows you to:

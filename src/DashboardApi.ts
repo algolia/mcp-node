@@ -155,9 +155,12 @@ export class DashboardApi {
       },
     );
 
-    const result = await CreateApiKeyResponse.parse(await response.json());
+    const key = CreateApiKeyResponse.parse(await response.json()).data.attributes.value;
 
-    return result.data.attributes.value;
+    const client = algoliasearch(applicationId, key);
+    await client.waitForApiKey({ key, operation: "add" });
+
+    return key;
   }
 
   async #makeRequest(url: string, requestInit: RequestInit = {}): Promise<Response> {

@@ -18,6 +18,8 @@ const DEFAULT_ALLOW_TOOLS = [
   "multipleBatch",
   "partialUpdateObject",
   "deleteByQuery",
+  "getObject",
+  "getObjects", 
   // Analytics
   "getTopSearches",
   "getTopHits",
